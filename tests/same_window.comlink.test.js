@@ -435,18 +435,21 @@ describe("Comlink in the same realm", function () {
     expect(await local.counter).to.equal(1);
   });
 
-  it("will wrap marked assignments", function (done) {
+  it("will wrap marked assignments", async function () {
     const thing = Comlink.wrap(this.port1);
+    let resolve;
+    let done = new Promise(res => resolve = res);
     const obj = {
       onready: null,
-      call() {
-        this.onready();
+      async call() {
+        await this.onready();
       },
     };
     Comlink.expose(obj, this.port2);
 
-    thing.onready = Comlink.proxy(() => done());
-    thing.call();
+    await (thing.onready = Comlink.proxy(() => resolve()));
+    await thing.call();
+    await done;
   });
 
   it("will wrap marked parameter values, simple function", async function () {
@@ -456,7 +459,7 @@ describe("Comlink in the same realm", function () {
     }, this.port2);
     // Weird code because Mocha
     await new Promise(async (resolve) => {
-      thing(Comlink.proxy((_) => resolve()));
+      await thing(Comlink.proxy((_) => resolve()));
     });
   });
 
@@ -543,7 +546,7 @@ describe("Comlink in the same realm", function () {
     const thing = Comlink.wrap(this.port2);
 
     const { port1, port2 } = new MessageChannel();
-    port1.addEventListener("message", thing.bind(this));
+    port1.addEventListener("message", (msg) => thing.call(this, msg).schedule());
     port1.start();
     port2.postMessage({ a: 1 });
   });

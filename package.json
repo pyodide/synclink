@@ -11,14 +11,13 @@
     "test:unit": "karma start",
     "test:types": "tsc -p ./tests/tsconfig.json",
     "test:types:watch": "npm run test:types -- --watch",
-    "test": "npm run fmt_test && npm run build && npm run test:types && npm run test:unit",
+    "test": "npm run build && npm run test:types && npm run test:unit",
     "fmt": "prettier --write './*.{mjs,js,ts,md,json,html}' './{src,docs,tests}/{,**/}*.{mjs,js,ts,md,json,html}'",
     "fmt_test": "test $(prettier -l './*.{mjs,js,ts,md,json,html}' './{src,docs,tests}/{**/,}*.{mjs,js,ts,md,json,html}' | wc -l) -eq 0",
     "watchtest": "CHROME_ONLY=1 karma start --no-single-run"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm test"
     }
   },
   "author": {
@@ -49,6 +48,5 @@
     "rollup-plugin-terser": "^6.1.0",
     "rollup-plugin-typescript2": "^0.27.1",
     "typescript": "^3.9.3"
-  },
-  "dependencies": {}
+  }
 }
