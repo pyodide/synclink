@@ -60,13 +60,7 @@ export interface HandlerWireValue {
   value: unknown;
 }
 
-export interface BufferWireValue {
-  id?: string;
-  type: WireValueType.BUFFER;
-  buffer: SharedArrayBuffer;
-}
-
-export type WireValue = RawWireValue | HandlerWireValue | BufferWireValue;
+export type WireValue = RawWireValue | HandlerWireValue;
 
 export type MessageID = string;
 
@@ -117,16 +111,6 @@ export interface ReleaseMessage {
   path: string[];
 }
 
-export interface SyncBuffers {
-  size: Int32Array;
-  data: Uint8Array;
-}
-
-export interface BlockingMessagePart {
-  syncify: unknown; // just needs to be present,
-  buffers: SyncBuffers;
-}
-
 export type Message =
   | GetMessage
   | SetMessage
@@ -135,4 +119,4 @@ export type Message =
   | EndpointMessage
   | ReleaseMessage;
 
-export type BlockingMessage = Message & BlockingMessagePart;
+export type BlockingMessage = Message;

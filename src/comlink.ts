@@ -35,3 +35,5 @@ export {
   Remote,
   Local,
 } from "./asynclink";
+
+export {interrupt_buffer, setInterruptHandler} from "./synclink";
