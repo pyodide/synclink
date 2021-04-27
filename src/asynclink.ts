@@ -362,6 +362,13 @@ function createProxy<T>(
           );
         };
       }
+      if(prop === "schedule"){
+        let r = new ProxyPromise(ep, {
+          type: MessageType.GET,
+          path: path.map((p) => p.toString()),
+        });
+        return r.schedule.bind(r);
+      }
       if (prop === "then") {
         if (path.length === 0) {
           return { then: () => proxy };

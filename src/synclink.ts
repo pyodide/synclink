@@ -62,7 +62,7 @@ export function setInterruptHandler(handler : () => never){
  * "not-equal" and this will do nothing.
  */
 function waitOnSizeBuffer() {
-  console.log("waiting on size buffer");
+  // console.log("waiting on size buffer");
   let index = 1;
   let value = 0;
   let timeout = 50;
@@ -70,7 +70,7 @@ function waitOnSizeBuffer() {
     switch (Atomics.wait(size_buffer, index, value, timeout)) {
       case "ok":
       case "not-equal":
-        console.log("finished waiting on size buffer");
+        // console.log("finished waiting on size buffer");
         return;
       case "timed-out":
         if(interrupt_buffer[0] !== 0){

@@ -10,7 +10,7 @@ function requestResponseMessageInner(
     new Promise((resolve) => {
       ep.addEventListener("message", function l(ev: MessageEvent) {
         if (!ev.data || !ev.data.id || ev.data.id !== id) {
-          console.log("ignoring", ev.data);
+          // console.log("ignoring", ev.data, "looking for", id);
           return;
         }
         ep.removeEventListener("message", l as any);
