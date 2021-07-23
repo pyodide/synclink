@@ -5,6 +5,8 @@ import {
   MessageType,
   PostMessageWithOrigin,
   WireValue,
+  WireValueType,
+  StoreKey,
 } from "./protocol";
 
 import { requestResponseMessage } from "./request_response";
@@ -14,12 +16,17 @@ import {
   toWireValue,
   transfer,
   throwMarker,
-  transferHandlers,
   isObject,
   TransferHandler,
+  storeCreate,
+  storeGetValue,
+  storeNewValue,
+  storeDeleteKey,
 } from "./transfer_handlers";
 
-import { syncRequest, syncResponse } from "./synclink";
+import { ComlinkTask, syncResponse } from "./comlink_task";
+
+// import { syncRequest, syncResponse } from "./synclink";
 
 export const createEndpoint = Symbol("Comlink.endpoint");
 export const releaseProxy = Symbol("Comlink.releaseProxy");
@@ -165,21 +172,33 @@ export type Local<T> =
         }
       : unknown);
 
-export function expose(obj: any, ep: Endpoint = self as any) {
-  ep.addEventListener("message", function callback(ev: MessageEvent) {
+export function expose(obj_arg: any, ep: Endpoint = self as any) {
+  storeCreate(ep);
+  ep.addEventListener("message", async function callback(ev: MessageEvent) {
     if (!ev || !ev.data) {
       return;
     }
-    const { id, type, path } = {
+    const { id, type, path, store_key } = {
       path: [] as string[],
       ...(ev.data as Message),
     };
-    const argumentList = (ev.data.argumentList || []).map(fromWireValue);
+    let obj;
+    if (store_key) {
+      obj = storeGetValue(ep, store_key);
+    } else {
+      obj = obj_arg;
+    }
+    const argumentList = (ev.data.argumentList || []).map((v: any) =>
+      fromWireValue(ep, v)
+    );
     let returnValue;
     try {
       const last = path.pop();
-      const parent = path.reduce((obj, prop) => obj[prop], obj);
+      let parent = path.reduce((obj, prop) => obj[prop], obj);
       const rawValue = last ? parent[last] : parent;
+      if (!last) {
+        parent = undefined;
+      }
       if (rawValue === undefined) {
         switch (type) {
           case MessageType.GET:
@@ -198,13 +217,20 @@ export function expose(obj: any, ep: Endpoint = self as any) {
           break;
         case MessageType.SET:
           {
-            parent[last!] = fromWireValue(ev.data.value);
+            parent[last!] = fromWireValue(ep, ev.data.value);
             returnValue = true;
           }
           break;
         case MessageType.APPLY:
           {
-            returnValue = rawValue.apply(parent, argumentList);
+            if (last) {
+              console.warn(1);
+              console.warn(rawValue, last, parent, argumentList);
+              returnValue = parent[last].apply(parent, argumentList);
+              console.warn(2);
+            } else {
+              returnValue = rawValue.apply(parent, argumentList);
+            }
           }
           break;
         case MessageType.CONSTRUCT:
@@ -225,41 +251,39 @@ export function expose(obj: any, ep: Endpoint = self as any) {
             returnValue = undefined;
           }
           break;
+        case MessageType.DESTROY:
+          {
+            storeDeleteKey(ep, store_key!);
+            returnValue = undefined;
+          }
+          break;
         default:
           return;
       }
-    } catch (value) {
-      console.warn("caught error:", value);
-      returnValue = { value, [throwMarker]: 0 };
+      console.warn(returnValue);
+      returnValue = await returnValue;
+    } finally {
     }
-    Promise.resolve(returnValue)
-      .catch((value) => {
-        return { value, [throwMarker]: 0 };
-      })
-      .then((returnValue) => {
-        if (ev.data.syncify) {
-          syncResponse(ep, ev.data, returnValue);
-        } else {
-          const [wireValue, transferables] = toWireValue(returnValue);
-          try {
-            ep.postMessage({ ...wireValue, id }, transferables);
-          } catch (e) {
-            if (e.constructor.name === DOMException.name) {
-              console.warn("Dom exception, proxying", e);
-              proxy(returnValue);
-              const [wireValue, transferables] = toWireValue(returnValue);
-              ep.postMessage({ ...wireValue, id }, transferables);
-            } else {
-              throw e;
-            }
-          }
-        }
-        if (type === MessageType.RELEASE) {
-          // detach and deactive after sending release response above.
-          ep.removeEventListener("message", callback as any);
-          closeEndPoint(ep);
-        }
-      });
+    // } catch (value) {
+    //   console.warn("thrown", type, ev.data);
+    //   console.warn("thrown", value.constructor.name, value.message, value.stack);
+    //   return { value, [throwMarker]: 0 };
+    // }
+    const [wireValue, transferables] = toWireValue(
+      ep,
+      returnValue,
+      !!ev.data.syncify
+    );
+    if (ev.data.syncify) {
+      syncResponse(ep, ev.data, wireValue);
+    } else {
+      ep.postMessage({ ...wireValue, id }, transferables);
+    }
+    if (type === MessageType.RELEASE) {
+      // detach and deactive after sending release response above.
+      ep.removeEventListener("message", callback as any);
+      closeEndPoint(ep);
+    }
   } as any);
   if (ep.start) {
     ep.start();
@@ -275,7 +299,7 @@ function closeEndPoint(endpoint: Endpoint) {
 }
 
 export function wrap<T>(ep: Endpoint, target?: any): Remote<T> {
-  return createProxy<T>(ep, [], target) as any;
+  return createProxy<T>(ep, undefined, [], target) as any;
 }
 
 function throwIfProxyReleased(isReleased: boolean) {
@@ -288,7 +312,7 @@ function throwIfProxyReleased(isReleased: boolean) {
  * This is a "syncifiable" promise. It consists of a task to be dispatched on
  * another thread. It can be dispatched asynchronously (the easy way) or
  * synchronously (the harder way). Either way, this promise does not start out
- * as scheduled, you 
+ * as scheduled, you
  */
 class ProxyPromise {
   endpoint: Endpoint;
@@ -296,6 +320,7 @@ class ProxyPromise {
   extra: () => void;
   transfers: Transferable[];
   scheduled: boolean;
+  _syncRequest?: Generator<void, any, void>;
   constructor(
     endpoint: Endpoint,
     msg: Message,
@@ -310,7 +335,7 @@ class ProxyPromise {
   }
 
   async schedule() {
-    if(this.scheduled){
+    if (this.scheduled) {
       throw new Error("Task already scheduled.");
     }
     this.scheduled = true;
@@ -320,34 +345,52 @@ class ProxyPromise {
       this.transfers
     );
     this.extra();
-    return fromWireValue(result);
+    return fromWireValue(this.endpoint, result);
   }
 
   then(onfulfilled: (value: any) => any, onrejected: (reason: any) => any) {
     return this.schedule().then(onfulfilled, onrejected);
   }
 
-  syncify(): any {
-    if(this.scheduled){
+  initiateSyncRequest() {
+    if (this.scheduled) {
       throw new Error("Task already scheduled.");
     }
     this.scheduled = true;
+    this._syncRequest = syncRequest(this);
+    console.log("111111");
+    this._syncRequest.next();
+    console.log("222222");
+  }
+
+  syncify(): any {
+    if (!this._syncRequest) {
+      this.initiateSyncRequest();
+    }
     // Handle sync request logic in synclink.ts
-    return syncRequest(this);
+    console.log("3333");
+    let result = this._syncRequest!.next().value;
+    console.log("4444");
+    this.extra();
+    let res = fromWireValue(this.endpoint, result, true);
+    console.log("6666");
+    return res;
   }
 }
 
-function createProxy<T>(
+export function createProxy<T>(
   ep: Endpoint,
+  store_key?: StoreKey,
   path: (string | number | symbol)[] = [],
-  target: object = function () {}
+  target: object = function () {},
+  keys = []
 ): Remote<T> {
   let isProxyReleased = false;
   const proxy = new Proxy(target, {
     get(_target, prop) {
       throwIfProxyReleased(isProxyReleased);
       if (prop === releaseProxy) {
-        return async () => {
+        return () => {
           new ProxyPromise(
             ep,
             {
@@ -362,9 +405,28 @@ function createProxy<T>(
           );
         };
       }
-      if(prop === "schedule"){
+      if (prop === "__destroy__") {
+        if (!store_key) {
+          return () => {};
+        }
+        return () => {
+          return new ProxyPromise(
+            ep,
+            {
+              type: MessageType.DESTROY,
+              store_key,
+            },
+            [],
+            () => {
+              isProxyReleased = true;
+            }
+          );
+        };
+      }
+      if (prop === "schedule") {
         let r = new ProxyPromise(ep, {
           type: MessageType.GET,
+          store_key,
           path: path.map((p) => p.toString()),
         });
         return r.schedule.bind(r);
@@ -376,33 +438,36 @@ function createProxy<T>(
 
         let r = new ProxyPromise(ep, {
           type: MessageType.GET,
+          store_key,
           path: path.map((p) => p.toString()),
         });
         return r.then.bind(r);
       }
-      if(prop === "syncify"){
+      if (prop === "syncify") {
         let r = new ProxyPromise(ep, {
           type: MessageType.GET,
+          store_key,
           path: path.map((p) => p.toString()),
         });
         return r.syncify.bind(r);
       }
-      return createProxy(ep, [...path, prop]);
+      return createProxy(ep, store_key, [...path, prop]);
     },
     set(_target, prop, rawValue) {
       throwIfProxyReleased(isProxyReleased);
       // FIXME: ES6 Proxy Handler `set` methods are supposed to return a
       // boolean. To show good will, we return true asynchronously ¯\_(ツ)_/¯
-      const [value, transferables] = toWireValue(rawValue);
+      const [value, transferables] = toWireValue(ep, rawValue);
       return requestResponseMessage(
         ep,
         {
           type: MessageType.SET,
+          store_key,
           path: [...path, prop].map((p) => p.toString()),
           value,
         },
         transferables
-      ).then(fromWireValue) as any;
+      ).then((v) => fromWireValue(ep, v)) as any;
     },
     apply(_target, _thisArg, rawArgumentList) {
       throwIfProxyReleased(isProxyReleased);
@@ -410,17 +475,28 @@ function createProxy<T>(
       if ((last as any) === createEndpoint) {
         return requestResponseMessage(ep, {
           type: MessageType.ENDPOINT,
-        }).then(fromWireValue);
+        }).then((v) => fromWireValue(ep, v));
       }
       // We just pretend that `bind()` didn’t happen.
       if (last === "bind") {
-        return createProxy(ep, path.slice(0, -1));
+        return createProxy(ep, store_key, path.slice(0, -1));
       }
-      const [argumentList, transferables] = processArguments(rawArgumentList);
+      if (last === "apply") {
+        // temporary hack...
+        rawArgumentList = rawArgumentList[1];
+        path = path.slice(0, -1);
+      }
+      console.log("=====================");
+      const [argumentList, transferables] = processArguments(
+        ep,
+        rawArgumentList
+      );
+      console.log("argumentList", argumentList);
       return new ProxyPromise(
         ep,
         {
           type: MessageType.APPLY,
+          store_key,
           path: path.map((p) => p.toString()),
           argumentList,
         },
@@ -429,16 +505,23 @@ function createProxy<T>(
     },
     construct(_target, rawArgumentList) {
       throwIfProxyReleased(isProxyReleased);
-      const [argumentList, transferables] = processArguments(rawArgumentList);
+      const [argumentList, transferables] = processArguments(
+        ep,
+        rawArgumentList
+      );
       return requestResponseMessage(
         ep,
         {
           type: MessageType.CONSTRUCT,
+          store_key,
           path: path.map((p) => p.toString()),
           argumentList,
         },
         transferables
-      ).then(fromWireValue);
+      ).then((v) => fromWireValue(ep, v));
+    },
+    ownKeys(_target) {
+      return keys;
     },
   });
   return proxy as any;
@@ -448,8 +531,11 @@ function myFlat<T>(arr: (T | T[])[]): T[] {
   return Array.prototype.concat.apply([], arr);
 }
 
-function processArguments(argumentList: any[]): [WireValue[], Transferable[]] {
-  const processed = argumentList.map(toWireValue);
+function processArguments(
+  ep: Endpoint,
+  argumentList: any[]
+): [WireValue[], Transferable[]] {
+  const processed = argumentList.map((v) => toWireValue(ep, v));
   return [processed.map((v) => v[0]), myFlat(processed.map((v) => v[1]))];
 }
 
@@ -496,4 +582,3 @@ export const proxyTransferHandler: TransferHandler<object, MessagePort> = {
     return wrap(port);
   },
 };
-transferHandlers.set("proxy", proxyTransferHandler);

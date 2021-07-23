@@ -46,7 +46,7 @@ function randomSegment() {
 
 export function generateUUID(): string {
   let result = Array.from({ length: 4 }, randomSegment).join("-");
-  if(result.length !== UUID_LENGTH){
+  if (result.length !== UUID_LENGTH) {
     throw new Error("comlink internal error: UUID has the wrong length");
   }
   return result;

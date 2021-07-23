@@ -1,4 +1,6 @@
-import { WireValue, WireValueType } from "./protocol";
+import { Endpoint, WireValue, WireValueType, StoreKey } from "./protocol";
+import { generateUUID } from "./request_response";
+import { createProxy } from "./asynclink";
 
 export const throwMarker = Symbol("Comlink.thrown");
 
@@ -48,6 +50,41 @@ export const transferHandlers = new Map<
   TransferHandler<unknown, unknown>
 >();
 
+function isPlain(val: any) {
+  return (
+    typeof val === "undefined" ||
+    typeof val === "string" ||
+    typeof val === "boolean" ||
+    typeof val === "number" ||
+    Array.isArray(val) ||
+    !val.constructor ||
+    (val.constructor === Object &&
+      Object.prototype.toString.call(val) === "[object Object]")
+  );
+}
+
+function isSerializable(obj: any, transfers: Transferable[] = []) {
+  if (transfers.includes(obj)) {
+    return true;
+  }
+  if (!isPlain(obj)) {
+    return false;
+  }
+  for (var property in obj) {
+    if (obj.hasOwnProperty(property)) {
+      if (!isPlain(obj[property])) {
+        return false;
+      }
+      if (typeof obj[property] == "object") {
+        if (!isSerializable(obj[property], transfers)) {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
 interface ThrownValue {
   [throwMarker]: unknown; // just needs to be present
   value: unknown;
@@ -92,10 +129,14 @@ export const throwTransferHandler: TransferHandler<
   },
 };
 
-transferHandlers.set("throw", throwTransferHandler);
-
-export function toWireValue(value: any): [WireValue, Transferable[]] {
+export function toWireValue(
+  ep: Endpoint,
+  value: any,
+  _sync: boolean = false
+): [WireValue, Transferable[]] {
+  console.log(value);
   for (const [name, handler] of transferHandlers) {
+    console.log("name", name, handler.canHandle(value));
     if (handler.canHandle(value)) {
       const [serializedValue, transferables] = handler.serialize(value);
       return [
@@ -108,20 +149,81 @@ export function toWireValue(value: any): [WireValue, Transferable[]] {
       ];
     }
   }
+  if (isSerializable(value, transferCache.get(value))) {
+    return [
+      {
+        type: WireValueType.RAW,
+        value,
+      },
+      transferCache.get(value) || [],
+    ];
+  }
+  let store_key = storeNewValue(ep, value);
   return [
     {
-      type: WireValueType.RAW,
-      value,
+      type: WireValueType.ID,
+      store_key,
+      endpoint_uuid: (ep as any)[endpointUUID],
+      ownkeys: Object.getOwnPropertyNames(value),
     },
-    transferCache.get(value) || [],
+    [],
   ];
 }
 
-export function fromWireValue(value: WireValue): any {
+export function fromWireValue(
+  ep: Endpoint,
+  value: WireValue,
+  _sync: boolean = false
+): any {
   switch (value.type) {
     case WireValueType.HANDLER:
       return transferHandlers.get(value.name)!.deserialize(value.value);
     case WireValueType.RAW:
       return value.value;
+    case WireValueType.ID:
+      let this_uuid = (ep as any)[endpointUUID];
+      if (this_uuid === value.endpoint_uuid) {
+        return storeGetValue(ep, value.store_key);
+      } else {
+        return createProxy(ep, value.store_key, []);
+      }
   }
+}
+
+const proxyStore = Symbol("Comlink.proxyStore");
+const endpointUUID = Symbol("Comlink.endpointUUID");
+
+export function storeCreate(obj: any) {
+  if (proxyStore in obj) {
+    return;
+  }
+  obj[proxyStore] = { objects: new Map(), counter: new Uint32Array([1]) };
+  obj[endpointUUID] = generateUUID();
+}
+
+export function storeGetValue(obj: any, key: StoreKey) {
+  return obj[proxyStore].objects.get(key);
+}
+
+export function storeNewValue(obj: any, value: any): StoreKey {
+  if (!(proxyStore in obj)) {
+    console.error("object", obj, "has no proxy store...");
+    storeCreate(obj);
+  }
+  let { objects, counter } = obj[proxyStore];
+  while (objects.has(counter[0])) {
+    // Increment by two here (and below) because even integers are reserved
+    // for singleton constants
+    counter[0] += 2;
+  }
+  let key = counter[0];
+  counter[0] += 2;
+  objects.set(key, value);
+  return key;
+}
+
+export function storeDeleteKey(obj: any, key: StoreKey): any {
+  let { objects } = obj[proxyStore];
+  objects.delete(key);
+  console.log("deleted", key, objects);
 }

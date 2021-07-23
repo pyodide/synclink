@@ -35,7 +35,6 @@ export interface PostMessageWithOrigin {
 
 export interface Endpoint extends EventSource {
   postMessage(message: any, transfer?: Transferable[]): void;
-
   start?: () => void;
 }
 
@@ -44,7 +43,7 @@ export const enum WireValueType {
   PROXY = "PROXY",
   THROW = "THROW",
   HANDLER = "HANDLER",
-  BUFFER = "BUFFER",
+  ID = "ID",
 }
 
 export interface RawWireValue {
@@ -60,9 +59,19 @@ export interface HandlerWireValue {
   value: unknown;
 }
 
-export type WireValue = RawWireValue | HandlerWireValue;
+export interface IdWireValue {
+  id?: string;
+  type: WireValueType.ID;
+  ownkeys: string[];
+  endpoint_uuid: string;
+  store_key: number;
+}
+
+export type WireValue = RawWireValue | HandlerWireValue | IdWireValue;
 
 export type MessageID = string;
+
+export type StoreKey = number;
 
 export const enum MessageType {
   GET = "GET",
@@ -71,10 +80,12 @@ export const enum MessageType {
   CONSTRUCT = "CONSTRUCT",
   ENDPOINT = "ENDPOINT",
   RELEASE = "RELEASE",
+  DESTROY = "DESTROY",
 }
 
 export interface GetMessage {
   id?: MessageID;
+  store_key?: StoreKey;
   type: MessageType.GET;
   path: string[];
 }
@@ -82,6 +93,7 @@ export interface GetMessage {
 export interface SetMessage {
   id?: MessageID;
   type: MessageType.SET;
+  store_key?: StoreKey;
   path: string[];
   value: WireValue;
 }
@@ -89,6 +101,7 @@ export interface SetMessage {
 export interface ApplyMessage {
   id?: MessageID;
   type: MessageType.APPLY;
+  store_key?: StoreKey;
   path: string[];
   argumentList: WireValue[];
 }
@@ -96,6 +109,7 @@ export interface ApplyMessage {
 export interface ConstructMessage {
   id?: MessageID;
   type: MessageType.CONSTRUCT;
+  store_key?: StoreKey;
   path: string[];
   argumentList: WireValue[];
 }
@@ -111,12 +125,17 @@ export interface ReleaseMessage {
   path: string[];
 }
 
+export interface DestroyMessage {
+  id?: MessageID;
+  type: MessageType.DESTROY;
+  store_key: StoreKey;
+}
+
 export type Message =
   | GetMessage
   | SetMessage
   | ApplyMessage
   | ConstructMessage
   | EndpointMessage
-  | ReleaseMessage;
-
-export type BlockingMessage = Message;
+  | ReleaseMessage
+  | DestroyMessage;

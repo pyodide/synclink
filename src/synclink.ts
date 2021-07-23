@@ -1,20 +1,14 @@
 /**
  * Support blocking calls accross a MessagePort.
- * 
+ *
  * We use Atomics.wait to block the thread making the request.
  */
 
-import {
-  Endpoint,
-  Message,
-  BlockingMessage,
-} from "./protocol";
+import { Endpoint, WireValue, Message } from "./protocol";
 
 import { UUID_LENGTH } from "./request_response";
 
 import { requestResponseMessageInner } from "./request_response";
-
-import { throwTransferHandler } from "./transfer_handlers";
 
 let decoder = new TextDecoder("utf-8");
 let encoder = new TextEncoder();
@@ -24,7 +18,7 @@ let encoder = new TextEncoder();
  *    0  ==> Send a bigger data buffer to the id stored the current data_buffer.
  *    1  ==> task completed successfully and the result is in data_buffer
  *    -1 ==> task failed, the error can be found in data_buffer
- * 
+ *
  * Entry 1: The size of the response.
  */
 let size_buffer = new Int32Array(new SharedArrayBuffer(8));
@@ -44,14 +38,14 @@ let data_buffer = new Uint8Array(new SharedArrayBuffer(UUID_LENGTH));
 let handleInterrupt = () => {
   interrupt_buffer[0] = 0;
   throw new Error("Interrupted!");
-}
+};
 
 /**
  * Sets the interrupt handler. This is called when the computation is
  * interrupted. Should zero the interrupt buffer and throw an exception.
- * @param handler 
+ * @param handler
  */
-export function setInterruptHandler(handler : () => never){
+export function setInterruptHandler(handler: () => never) {
   handleInterrupt = handler;
 }
 
@@ -73,7 +67,7 @@ function waitOnSizeBuffer() {
         // console.log("finished waiting on size buffer");
         return;
       case "timed-out":
-        if(interrupt_buffer[0] !== 0){
+        if (interrupt_buffer[0] !== 0) {
           handleInterrupt();
         }
         break;
@@ -92,7 +86,7 @@ interface ProxyPromise {
 /**
  * Synchronously request work to be done on the other thread. Will block by
  * using Atomics.wait on size_buffer until the other thread responds by using
- * Atomics.notify on size_buffer. 
+ * Atomics.notify on size_buffer.
  *
  * See syncResponse for the response code, these two functions are bet read at
  * the same time. The responder may request data_buffer to be enlarged, in which
@@ -105,36 +99,27 @@ interface ProxyPromise {
  * @param transfers {Transferable[]} A list of objects to transfer as part of
  * msg.
  */
-export function syncRequest(task: ProxyPromise) {
-  let {endpoint, msg, transfers} = task;
-  // Ensure status is cleared. We will notify 
-  size_buffer[1] = 0;
+export function* syncRequest(task: ProxyPromise) {
+  let { endpoint, msg, transfers } = task;
+  // Ensure status is cleared. We will notify
+  Atomics.store(size_buffer, 1, 0);
   endpoint.postMessage(
     { ...msg, size_buffer, data_buffer, syncify: true },
     transfers
   );
+  yield;
   waitOnSizeBuffer();
-  if (size_buffer[1] === 0) {
+  if (Atomics.load(size_buffer, 1) === -1) {
     // There wasn't enough space, make a bigger data_buffer.
     // First read uuid for response out of current data_buffer
-    const uuid = decoder.decode(data_buffer.slice(0, UUID_LENGTH));
+    const id = decoder.decode(data_buffer.slice(0, UUID_LENGTH));
     data_buffer = new Uint8Array(new SharedArrayBuffer(size_buffer[0]));
-    endpoint.postMessage({ uuid, data_buffer });
+    endpoint.postMessage({ id, data_buffer });
+    Atomics.store(size_buffer, 1, 0);
     waitOnSizeBuffer();
   }
   const size = size_buffer[0];
-  let result = JSON.parse(decoder.decode(data_buffer.slice(0, size)));
-  if (size_buffer[1] === 1) {
-    return result;
-  } 
-  if (size_buffer[1] === -1) {
-    const e = new Error();
-    e.name = result.name;
-    e.message = result.message;
-    (e as any).orig_stack = result.stack;
-    throw e;
-  }
-  throw new Error("Unreachable");
+  return JSON.parse(decoder.decode(data_buffer.slice(0, size)));
 }
 
 /**
@@ -152,26 +137,14 @@ export function syncRequest(task: ProxyPromise) {
 export async function syncResponse(
   endpoint: Endpoint,
   msg: any,
-  returnValue: BlockingMessage
+  returnValue: WireValue
 ) {
   try {
     let { size_buffer, data_buffer } = msg;
-    let err_sgn = 1;
-    let outvalue;
-    if (throwTransferHandler.canHandle(returnValue)) {
-      // returnValue is an error
-      err_sgn = -1;
-      outvalue = throwTransferHandler.serialize(returnValue)[0];
-    } else {
-      outvalue = returnValue;
-    }
-
-    let bytes = encoder.encode(JSON.stringify(outvalue));
+    let bytes = encoder.encode(JSON.stringify(returnValue));
     let fits = bytes.length <= data_buffer.length;
     Atomics.store(size_buffer, 0, bytes.length);
-    // status: 0 if not fits, 1 if success, -1 if error.
-    let status = err_sgn * +fits; 
-    Atomics.store(size_buffer, 1, status);
+    Atomics.store(size_buffer, 1, fits ? 1 : -1);
     if (!fits) {
       // Request larger buffer
       let [uuid, data_promise] = requestResponseMessageInner(endpoint);
@@ -184,9 +157,7 @@ export async function syncResponse(
     }
     // Encode result into data_buffer
     data_buffer.set(bytes);
-    // status: 1 if success, -1 if error.
-    status = err_sgn;
-    Atomics.store(size_buffer, 1, status);
+    Atomics.store(size_buffer, 1, 1);
     // @ts-ignore
     Atomics.notify(size_buffer, 1);
   } catch (e) {

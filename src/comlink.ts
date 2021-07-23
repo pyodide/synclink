@@ -36,4 +36,27 @@ export {
   Local,
 } from "./asynclink";
 
-export {interrupt_buffer, setInterruptHandler} from "./synclink";
+export {
+  interrupt_buffer,
+  setInterruptHandler,
+  Syncifier,
+} from "./comlink_task";
+
+import { proxyTransferHandler } from "./asynclink";
+
+import { transferHandlers, throwTransferHandler } from "./transfer_handlers";
+
+transferHandlers.set("throw", throwTransferHandler);
+transferHandlers.set("proxy", proxyTransferHandler);
+
+transferHandlers.set("headers", {
+  canHandle(value: unknown): value is Headers {
+    return Object.prototype.toString.call(value) === "[object Headers]";
+  },
+  serialize(value: Headers): [string[][], Transferable[]] {
+    return [Array.from(value as any), []];
+  },
+  deserialize(value: string[][]): Headers {
+    return new Headers(value);
+  },
+});
