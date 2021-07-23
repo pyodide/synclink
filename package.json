@@ -17,8 +17,7 @@
     "watchtest": "CHROME_ONLY=1 karma start --no-single-run"
   },
   "husky": {
-    "hooks": {
-    }
+    "hooks": {}
   },
   "author": {
     "name": "Surma",

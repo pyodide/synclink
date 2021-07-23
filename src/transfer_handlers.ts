@@ -132,11 +132,8 @@ export const throwTransferHandler: TransferHandler<
 export function toWireValue(
   ep: Endpoint,
   value: any,
-  _sync: boolean = false
 ): [WireValue, Transferable[]] {
-  console.log(value);
   for (const [name, handler] of transferHandlers) {
-    console.log("name", name, handler.canHandle(value));
     if (handler.canHandle(value)) {
       const [serializedValue, transferables] = handler.serialize(value);
       return [
@@ -173,7 +170,6 @@ export function toWireValue(
 export function fromWireValue(
   ep: Endpoint,
   value: WireValue,
-  _sync: boolean = false
 ): any {
   switch (value.type) {
     case WireValueType.HANDLER:
@@ -207,7 +203,6 @@ export function storeGetValue(obj: any, key: StoreKey) {
 
 export function storeNewValue(obj: any, value: any): StoreKey {
   if (!(proxyStore in obj)) {
-    console.error("object", obj, "has no proxy store...");
     storeCreate(obj);
   }
   let { objects, counter } = obj[proxyStore];

@@ -224,10 +224,7 @@ export function expose(obj_arg: any, ep: Endpoint = self as any) {
         case MessageType.APPLY:
           {
             if (last) {
-              console.warn(1);
-              console.warn(rawValue, last, parent, argumentList);
               returnValue = parent[last].apply(parent, argumentList);
-              console.warn(2);
             } else {
               returnValue = rawValue.apply(parent, argumentList);
             }
@@ -260,19 +257,13 @@ export function expose(obj_arg: any, ep: Endpoint = self as any) {
         default:
           return;
       }
-      console.warn(returnValue);
       returnValue = await returnValue;
-    } finally {
+    } catch (value) {
+      returnValue = { value, [throwMarker]: 0 };
     }
-    // } catch (value) {
-    //   console.warn("thrown", type, ev.data);
-    //   console.warn("thrown", value.constructor.name, value.message, value.stack);
-    //   return { value, [throwMarker]: 0 };
-    // }
     const [wireValue, transferables] = toWireValue(
       ep,
-      returnValue,
-      !!ev.data.syncify
+      returnValue
     );
     if (ev.data.syncify) {
       syncResponse(ep, ev.data, wireValue);
@@ -308,76 +299,6 @@ function throwIfProxyReleased(isReleased: boolean) {
   }
 }
 
-/**
- * This is a "syncifiable" promise. It consists of a task to be dispatched on
- * another thread. It can be dispatched asynchronously (the easy way) or
- * synchronously (the harder way). Either way, this promise does not start out
- * as scheduled, you
- */
-class ProxyPromise {
-  endpoint: Endpoint;
-  msg: Message;
-  extra: () => void;
-  transfers: Transferable[];
-  scheduled: boolean;
-  _syncRequest?: Generator<void, any, void>;
-  constructor(
-    endpoint: Endpoint,
-    msg: Message,
-    transfers: Transferable[] = [],
-    extra: () => void = () => {}
-  ) {
-    this.endpoint = endpoint;
-    this.msg = msg;
-    this.extra = extra;
-    this.transfers = transfers;
-    this.scheduled = false;
-  }
-
-  async schedule() {
-    if (this.scheduled) {
-      throw new Error("Task already scheduled.");
-    }
-    this.scheduled = true;
-    let result = await requestResponseMessage(
-      this.endpoint,
-      this.msg,
-      this.transfers
-    );
-    this.extra();
-    return fromWireValue(this.endpoint, result);
-  }
-
-  then(onfulfilled: (value: any) => any, onrejected: (reason: any) => any) {
-    return this.schedule().then(onfulfilled, onrejected);
-  }
-
-  initiateSyncRequest() {
-    if (this.scheduled) {
-      throw new Error("Task already scheduled.");
-    }
-    this.scheduled = true;
-    this._syncRequest = syncRequest(this);
-    console.log("111111");
-    this._syncRequest.next();
-    console.log("222222");
-  }
-
-  syncify(): any {
-    if (!this._syncRequest) {
-      this.initiateSyncRequest();
-    }
-    // Handle sync request logic in synclink.ts
-    console.log("3333");
-    let result = this._syncRequest!.next().value;
-    console.log("4444");
-    this.extra();
-    let res = fromWireValue(this.endpoint, result, true);
-    console.log("6666");
-    return res;
-  }
-}
-
 export function createProxy<T>(
   ep: Endpoint,
   store_key?: StoreKey,
@@ -389,69 +310,57 @@ export function createProxy<T>(
   const proxy = new Proxy(target, {
     get(_target, prop) {
       throwIfProxyReleased(isProxyReleased);
-      if (prop === releaseProxy) {
-        return () => {
-          new ProxyPromise(
-            ep,
-            {
-              type: MessageType.RELEASE,
-              path: path.map((p) => p.toString()),
-            },
-            [],
-            () => {
-              closeEndPoint(ep);
-              isProxyReleased = true;
-            }
-          );
-        };
+      switch(prop){
+        case(Symbol.toStringTag):
+          return "ComlinkProxy";
+        case(releaseProxy):
+          return () => {
+            new ComlinkTask(
+              ep,
+              {
+                type: MessageType.RELEASE,
+                path: path.map((p) => p.toString()),
+              },
+              [],
+              () => {
+                closeEndPoint(ep);
+                isProxyReleased = true;
+              }
+            );
+          };
+        case("__destroy__"):
+          if (!store_key) {
+            return () => {};
+          }
+          return () => {
+            return new ComlinkTask(
+              ep,
+              {
+                type: MessageType.DESTROY,
+                store_key,
+              },
+              [],
+              () => {
+                isProxyReleased = true;
+              }
+            );
+          };
+        case("then"):
+        case("schedule_async"):
+        case("schedule_sync"):
+        case("syncify"):
+          if (path.length === 0 && prop === "then") {
+            return { then: () => proxy };
+          }
+          let r = new ComlinkTask(ep, {
+            type: MessageType.GET,
+            store_key,
+            path: path.map((p) => p.toString()),
+          });
+          return r[prop].bind(r);
+        default:
+          return createProxy(ep, store_key, [...path, prop]);
       }
-      if (prop === "__destroy__") {
-        if (!store_key) {
-          return () => {};
-        }
-        return () => {
-          return new ProxyPromise(
-            ep,
-            {
-              type: MessageType.DESTROY,
-              store_key,
-            },
-            [],
-            () => {
-              isProxyReleased = true;
-            }
-          );
-        };
-      }
-      if (prop === "schedule") {
-        let r = new ProxyPromise(ep, {
-          type: MessageType.GET,
-          store_key,
-          path: path.map((p) => p.toString()),
-        });
-        return r.schedule.bind(r);
-      }
-      if (prop === "then") {
-        if (path.length === 0) {
-          return { then: () => proxy };
-        }
-
-        let r = new ProxyPromise(ep, {
-          type: MessageType.GET,
-          store_key,
-          path: path.map((p) => p.toString()),
-        });
-        return r.then.bind(r);
-      }
-      if (prop === "syncify") {
-        let r = new ProxyPromise(ep, {
-          type: MessageType.GET,
-          store_key,
-          path: path.map((p) => p.toString()),
-        });
-        return r.syncify.bind(r);
-      }
-      return createProxy(ep, store_key, [...path, prop]);
     },
     set(_target, prop, rawValue) {
       throwIfProxyReleased(isProxyReleased);
@@ -486,13 +395,11 @@ export function createProxy<T>(
         rawArgumentList = rawArgumentList[1];
         path = path.slice(0, -1);
       }
-      console.log("=====================");
       const [argumentList, transferables] = processArguments(
         ep,
         rawArgumentList
       );
-      console.log("argumentList", argumentList);
-      return new ProxyPromise(
+      return new ComlinkTask(
         ep,
         {
           type: MessageType.APPLY,
