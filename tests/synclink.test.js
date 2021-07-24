@@ -7,7 +7,7 @@ function sleep(ms) {
 describe("xxx xxxx xxxxx", function () {
   beforeEach(async function () {
     this.worker = Comlink.wrap(
-      new Worker("/base/tests/synclink.test.worker.js")
+      new Worker("/base/tests/fixtures/synclink.test.worker.js")
     );
     const fetch = window.fetch.bind(window);
     this.worker_scope = { fetch };
