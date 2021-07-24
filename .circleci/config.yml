@@ -39,6 +39,8 @@ jobs:
           command: npm run test:types
 
   test-unit:
+    environment: 
+      - IN_DOCKER: 1
     docker:
       - image: cypress/browsers:node14.17.0-chrome91-ff89
     steps:
