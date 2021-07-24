@@ -51,7 +51,7 @@ jobs:
           command: npm run build
       - run:
           name: Run tests
-          command: npx karma start karma start
+          command: npx karma start
       - store_test_results:
           path: test-results
 
