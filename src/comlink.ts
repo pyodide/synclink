@@ -36,7 +36,11 @@ export {
   Local,
 } from "./asynclink";
 
-export { interrupt_buffer, setInterruptHandler, Syncifier } from "./comlink_task";
+export {
+  interrupt_buffer,
+  setInterruptHandler,
+  Syncifier,
+} from "./comlink_task";
 
 import { proxyTransferHandler } from "./asynclink";
 

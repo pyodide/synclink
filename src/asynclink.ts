@@ -261,10 +261,7 @@ export function expose(obj_arg: any, ep: Endpoint = self as any) {
     } catch (value) {
       returnValue = { value, [throwMarker]: 0 };
     }
-    const [wireValue, transferables] = toWireValue(
-      ep,
-      returnValue
-    );
+    const [wireValue, transferables] = toWireValue(ep, returnValue);
     if (ev.data.syncify) {
       syncResponse(ep, ev.data, wireValue);
     } else {
@@ -310,10 +307,10 @@ export function createProxy<T>(
   const proxy = new Proxy(target, {
     get(_target, prop) {
       throwIfProxyReleased(isProxyReleased);
-      switch(prop){
-        case(Symbol.toStringTag):
+      switch (prop) {
+        case Symbol.toStringTag:
           return "ComlinkProxy";
-        case(releaseProxy):
+        case releaseProxy:
           return () => {
             new ComlinkTask(
               ep,
@@ -328,7 +325,7 @@ export function createProxy<T>(
               }
             );
           };
-        case("__destroy__"):
+        case "__destroy__":
           if (!store_key) {
             return () => {};
           }
@@ -345,10 +342,10 @@ export function createProxy<T>(
               }
             );
           };
-        case("then"):
-        case("schedule_async"):
-        case("schedule_sync"):
-        case("syncify"):
+        case "then":
+        case "schedule_async":
+        case "schedule_sync":
+        case "syncify":
           if (path.length === 0 && prop === "then") {
             return { then: () => proxy };
           }
