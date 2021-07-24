@@ -13,7 +13,7 @@
     "test:types:watch": "npm run test:types -- --watch",
     "test": "npm run build && npm run test:types && npm run test:unit",
     "fmt": "prettier --write './*.{mjs,js,ts,md,json,html}' './{src,docs,tests}/{,**/}*.{mjs,js,ts,md,json,html}'",
-    "fmt_test": "test $(prettier -l './*.{mjs,js,ts,md,json,html}' './{src,docs,tests}/{**/,}*.{mjs,js,ts,md,json,html}' | wc -l) -eq 0",
+    "fmt_test": "prettier -l './*.{mjs,js,ts,md,json,html}' './{src,docs,tests}/{**/,}*.{mjs,js,ts,md,json,html}'",
     "watchtest": "CHROME_ONLY=1 karma start --no-single-run"
   },
   "husky": {

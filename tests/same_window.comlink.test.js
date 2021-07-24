@@ -438,7 +438,7 @@ describe("Comlink in the same realm", function () {
   it("will wrap marked assignments", async function () {
     const thing = Comlink.wrap(this.port1);
     let resolve;
-    let done = new Promise(res => resolve = res);
+    let done = new Promise((res) => (resolve = res));
     const obj = {
       onready: null,
       async call() {
@@ -546,7 +546,9 @@ describe("Comlink in the same realm", function () {
     const thing = Comlink.wrap(this.port2);
 
     const { port1, port2 } = new MessageChannel();
-    port1.addEventListener("message", (msg) => thing.call(this, msg).schedule());
+    port1.addEventListener("message", (msg) =>
+      thing.call(this, msg).schedule()
+    );
     port1.start();
     port2.postMessage({ a: 1 });
   });

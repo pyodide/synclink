@@ -529,7 +529,7 @@ export class ComlinkTask {
     try {
       this._resolved = true;
       this._result = fromWireValue(this.endpoint, value);
-    } catch(e){
+    } catch (e) {
       this._exception = e;
     }
     return true;
@@ -545,7 +545,14 @@ export class ComlinkTask {
     let data_buffer = acquireDataBuffer(UUID_LENGTH);
     console.log("===requesting", taskId);
     endpoint.postMessage(
-      { ...msg, size_buffer, data_buffer, signal_buffer, taskId, syncify: true },
+      {
+        ...msg,
+        size_buffer,
+        data_buffer,
+        signal_buffer,
+        taskId,
+        syncify: true,
+      },
       transfers
     );
     yield;
@@ -731,7 +738,7 @@ class _Syncifier {
 
   *tasksIdsToWakeup() {
     let flag = Atomics.load(this.signal_buffer, 0);
-    for (let i = 0; i < 32; i ++) {
+    for (let i = 0; i < 32; i++) {
       let bit = 1 << i;
       if (flag & bit) {
         Atomics.and(this.signal_buffer, 0, ~bit);

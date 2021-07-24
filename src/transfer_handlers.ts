@@ -131,7 +131,7 @@ export const throwTransferHandler: TransferHandler<
 
 export function toWireValue(
   ep: Endpoint,
-  value: any,
+  value: any
 ): [WireValue, Transferable[]] {
   for (const [name, handler] of transferHandlers) {
     if (handler.canHandle(value)) {
@@ -167,10 +167,7 @@ export function toWireValue(
   ];
 }
 
-export function fromWireValue(
-  ep: Endpoint,
-  value: WireValue,
-): any {
+export function fromWireValue(ep: Endpoint, value: WireValue): any {
   switch (value.type) {
     case WireValueType.HANDLER:
       return transferHandlers.get(value.name)!.deserialize(value.value);
