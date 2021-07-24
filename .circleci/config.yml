@@ -28,15 +28,28 @@ jobs:
       - run:
           name: lint
           command: npm run fmt_test
-  
-  test:
+
+  test-types:
     <<: *defaults
     steps:
       - attach_workspace:
           at: .
       - run:
-          name: Build main bundle
-          command: npm run test
+          name: Test types
+          command: npm run test:types
+
+  test-unit:
+    docker:
+      - image: selenium/node-chrome:3.141.59-20210713
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Build bundle
+          command: npm run build
+      - run:
+          name: Run tests
+          command: npm run test:unit
 
 workflows:
   version: 2
@@ -46,6 +59,9 @@ workflows:
       - lint:
           requires:
             - npm-install
-      - test:
+      - test-types:
+          requires:
+            - npm-install
+      - test-unit:
           requires:
             - npm-install
