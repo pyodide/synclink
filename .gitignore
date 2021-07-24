@@ -5,3 +5,4 @@ node_modules
 dist
 .*_cache*
 package-lock.json
+test-results

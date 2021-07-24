@@ -49,7 +49,9 @@ jobs:
           command: npm run build
       - run:
           name: Run tests
-          command: npm run test:unit
+          command: npx karma start karma start
+      - store_test_results:
+          path: test-results
 
 workflows:
   version: 2

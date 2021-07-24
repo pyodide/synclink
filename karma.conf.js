@@ -29,7 +29,12 @@ module.exports = function (config) {
         type: "module",
       },
     ],
-    reporters: ["progress"],
+    reporters: ['progress', 'junit'],
+
+    // the default configuration
+    junitReporter: {
+      outputDir: 'test-results', // results will be saved as $outputDir/$browserName.xml
+    },
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
@@ -42,18 +47,9 @@ module.exports = function (config) {
       preferHeadless: true,
       postDetection: (availableBrowsers) => {
         if (process.env.INSIDE_DOCKER) {
-          return ["DockerChrome"];
-        } else if (process.env.CHROME_ONLY) {
-          return ["ChromeHeadless"];
-        } else {
-          // Filtering SafariTechPreview because I am having
-          // local issues and I have no idea how to fix them.
-          // I know that’s not a good reason to disable tests,
-          // but Safari TP is relatively unimportant.
-          return availableBrowsers.filter(
-            (browser) => browser !== "SafariTechPreview"
-          );
+          return ["DockerChrome", "FirefoxHeadless"];
         }
+        return availableBrowsers;
       },
     },
     customLaunchers: {
@@ -62,6 +58,15 @@ module.exports = function (config) {
         flags: ["--no-sandbox"],
       },
     },
+    customHeaders: [{
+      match: '.*',
+      name: 'Cross-Origin-Opener-Policy',
+      value: 'same-origin',
+    }, {
+      match: '.*',
+      name: 'Cross-Origin-Embedder-Policy',
+      value: 'require-corp',
+    }],
   };
 
   config.set(configuration);
