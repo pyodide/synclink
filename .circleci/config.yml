@@ -23,11 +23,10 @@ jobs:
   lint:
     <<: *defaults
     steps:
-      - attach_workspace:
-          at: .
+      - checkout
       - run:
           name: lint
-          command: npm run fmt_test
+          command: npx prettier -l './*.{mjs,js,ts,md,json,html}' './{src,docs,tests}/{**/,}*.{mjs,js,ts,md,json,html}'
 
   test-types:
     <<: *defaults
@@ -60,9 +59,7 @@ workflows:
   build-and-deploy:
     jobs:
       - npm-install
-      - lint:
-          requires:
-            - npm-install
+      - lint
       - test-types:
           requires:
             - npm-install
