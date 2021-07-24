@@ -29,11 +29,11 @@ module.exports = function (config) {
         type: "module",
       },
     ],
-    reporters: ['progress', 'junit'],
+    reporters: ["progress", "junit"],
 
     // the default configuration
     junitReporter: {
-      outputDir: 'test-results', // results will be saved as $outputDir/$browserName.xml
+      outputDir: "test-results", // results will be saved as $outputDir/$browserName.xml
     },
     port: 9876,
     colors: true,
@@ -58,15 +58,12 @@ module.exports = function (config) {
         flags: ["--no-sandbox"],
       },
     },
-    customHeaders: [{
-      match: '.*',
-      name: 'Cross-Origin-Opener-Policy',
-      value: 'same-origin',
-    }, {
-      match: '.*',
-      name: 'Cross-Origin-Embedder-Policy',
-      value: 'require-corp',
-    }],
+    customHeaders: [
+      ...Object.entries({
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+      }).map(([name, value]) => ({ name, value })),
+    ],
   };
 
   config.set(configuration);
