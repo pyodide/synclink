@@ -38,8 +38,6 @@ jobs:
           command: npm run test:types
 
   test-unit:
-    environment: 
-      - IN_DOCKER: 1
     docker:
       - image: cypress/browsers:node14.17.0-chrome91-ff89
     steps:
@@ -50,7 +48,9 @@ jobs:
           command: npm run build
       - run:
           name: Run tests
-          command: npx karma start
+          command: |
+            export INSIDE_DOCKER=1
+            npx karma start
       - store_test_results:
           path: test-results
 
