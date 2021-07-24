@@ -40,7 +40,7 @@ jobs:
 
   test-unit:
     docker:
-      - image: selenium/node-chrome:3.141.59-20210713
+      - image: cypress/node14.17.0-chrome91-ff89
     steps:
       - attach_workspace:
           at: .
