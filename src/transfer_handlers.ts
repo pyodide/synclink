@@ -67,6 +67,9 @@ function isSerializable(obj: any, transfers: Transferable[] = []) {
   if (transfers.includes(obj)) {
     return true;
   }
+  if(ArrayBuffer.isView(obj) || Object.prototype.toString.call(obj) === '[object ArrayBuffer]'){
+    return true;
+  }
   if (!isPlain(obj)) {
     return false;
   }
