@@ -9,6 +9,7 @@ import { Endpoint, WireValue, Message } from "./protocol";
 import { UUID_LENGTH } from "./request_response";
 
 import { requestResponseMessageInner } from "./request_response";
+import SharedArrayBuffer from "./shared_array_buffer";
 
 let decoder = new TextDecoder("utf-8");
 let encoder = new TextEncoder();

@@ -5,6 +5,7 @@ import {
   requestResponseMessageInner,
   UUID_LENGTH,
 } from "./request_response";
+import SharedArrayBuffer from "./shared_array_buffer";
 
 import { fromWireValue } from "./transfer_handlers";
 
