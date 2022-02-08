@@ -67,7 +67,10 @@ function isSerializable(obj: any, transfers: Transferable[] = []) {
   if (transfers.includes(obj)) {
     return true;
   }
-  if(ArrayBuffer.isView(obj) || Object.prototype.toString.call(obj) === '[object ArrayBuffer]'){
+  if (
+    ArrayBuffer.isView(obj) ||
+    Object.prototype.toString.call(obj) === "[object ArrayBuffer]"
+  ) {
     return true;
   }
   if (!isPlain(obj)) {
@@ -136,6 +139,24 @@ export function toWireValue(
   ep: Endpoint,
   value: any
 ): [WireValue, Transferable[]] {
+  if (value && value.$$ep === ep) {
+    return [
+      {
+        type: WireValueType.PROXY,
+        message: value._as_message(),
+      },
+      [],
+    ];
+  }
+  if (value && value.constructor && value.constructor.name === "ComlinkTask") {
+    return [
+      {
+        type: WireValueType.PROXY,
+        message: value.msg,
+      },
+      [],
+    ];
+  }
   for (const [name, handler] of transferHandlers) {
     if (handler.canHandle(value)) {
       const [serializedValue, transferables] = handler.serialize(value);

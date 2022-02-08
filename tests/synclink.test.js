@@ -69,4 +69,20 @@ describe("xxx xxxx xxxxx", function () {
       JSON.stringify([0, 1, 2, 3, 4])
     );
   });
+
+  it("proxy_arg", async function(){
+    function f(){
+      return {
+        method(){
+            return "abc!!";
+        }
+      };
+    }
+    function g(x){
+      return x.method();
+    }
+    this.worker_scope.f = f;
+    this.worker_scope.g = g;
+    expect(await this.worker.proxy_arg_test()).to.equal("abc!!");
+  });
 });

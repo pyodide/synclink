@@ -1,7 +1,7 @@
-let temp : typeof ArrayBuffer | typeof SharedArrayBuffer;
-if(typeof SharedArrayBuffer === "undefined"){
-    temp = ArrayBuffer;
+let temp: typeof ArrayBuffer | typeof SharedArrayBuffer;
+if (typeof SharedArrayBuffer === "undefined") {
+  temp = ArrayBuffer;
 } else {
-    temp = SharedArrayBuffer;
+  temp = SharedArrayBuffer;
 }
 export default temp;

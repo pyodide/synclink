@@ -67,7 +67,17 @@ export interface IdWireValue {
   store_key: number;
 }
 
-export type WireValue = RawWireValue | HandlerWireValue | IdWireValue;
+export interface ProxyWireValue {
+  id?: string;
+  type: WireValueType.PROXY;
+  message: Message;
+}
+
+export type WireValue =
+  | RawWireValue
+  | HandlerWireValue
+  | IdWireValue
+  | ProxyWireValue;
 
 export type MessageID = string;
 

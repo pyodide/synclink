@@ -32,10 +32,12 @@ function test3(x) {
 function test4(name) {
   const tasks = [];
   for (let i = 0; i < 5; i++) {
+    console.log("i", i);
     tasks.push(self.main_window[name]().schedule_sync());
   }
   const results = [];
   for (let task of tasks) {
+    console.log("syncify", task);
     results.push(task.syncify());
   }
   return JSON.stringify(results);
@@ -47,6 +49,11 @@ function test5(name) {
     results.push(self.main_window[name]().syncify());
   }
   return JSON.stringify(results);
+}
+
+function proxy_arg_test(){
+  const x = self.main_window.f().syncify();
+  return self.main_window.g(x);
 }
 
 function set_global_scope(window) {
@@ -61,4 +68,5 @@ Comlink.expose({
   test3,
   test4,
   test5,
+  proxy_arg_test,
 });

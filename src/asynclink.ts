@@ -172,92 +172,102 @@ export type Local<T> =
         }
       : unknown);
 
+function innerMessageHandler(obj_arg: any, ep: Endpoint, message: Message) {
+  const { id, path, store_key } = {
+    path: [] as string[],
+    ...message,
+  };
+  let obj;
+  if (store_key) {
+    obj = storeGetValue(ep, store_key);
+  } else {
+    obj = obj_arg;
+  }
+  const argumentList = ((message as any).argumentList || []).map((v: any) => {
+    if (v.type === WireValueType.PROXY) {
+      return innerMessageHandler(obj_arg, ep, v.message);
+    } else {
+      return fromWireValue(ep, v);
+    }
+  });
+  const last = path.pop();
+  let parent = path.reduce((obj, prop) => obj[prop], obj);
+  const rawValue = last ? parent[last] : obj;
+  if (!last) {
+    parent = undefined;
+  }
+  if (rawValue === undefined) {
+    switch (message.type) {
+      case MessageType.GET:
+      case MessageType.SET:
+        break;
+      default:
+        console.warn("Undefined", obj, path, last);
+        throw new Error("undefined!!" + ` ${obj}, ${path}, ${last}`);
+    }
+  }
+  switch (message.type) {
+    case MessageType.GET:
+      {
+        return rawValue;
+      }
+      break;
+    case MessageType.SET:
+      {
+        parent[last!] = fromWireValue(ep, message.value);
+        return true;
+      }
+      break;
+    case MessageType.APPLY:
+      {
+        if (last) {
+          return parent[last].apply(parent, argumentList);
+        } else {
+          return rawValue.apply(parent, argumentList);
+        }
+      }
+      break;
+    case MessageType.CONSTRUCT:
+      {
+        const value = new rawValue(...argumentList);
+        return proxy(value);
+      }
+      break;
+    case MessageType.ENDPOINT:
+      {
+        const { port1, port2 } = new MessageChannel();
+        expose(obj, port2);
+        return transfer(port1, [port1]);
+      }
+      break;
+    case MessageType.RELEASE:
+      {
+        return undefined;
+      }
+      break;
+    case MessageType.DESTROY:
+      {
+        storeDeleteKey(ep, store_key!);
+        return undefined;
+      }
+      break;
+    default:
+      return undefined;
+  }
+}
+
 export function expose(obj_arg: any, ep: Endpoint = self as any) {
   storeCreate(ep);
   ep.addEventListener("message", async function callback(ev: MessageEvent) {
     if (!ev || !ev.data) {
       return;
     }
-    const { id, type, path, store_key } = {
-      path: [] as string[],
-      ...(ev.data as Message),
-    };
-    let obj;
-    if (store_key) {
-      obj = storeGetValue(ep, store_key);
-    } else {
-      obj = obj_arg;
-    }
-    const argumentList = (ev.data.argumentList || []).map((v: any) =>
-      fromWireValue(ep, v)
-    );
+    const message = ev.data as Message;
+    const { id, type } = { ...message };
+
     let returnValue;
     try {
-      const last = path.pop();
-      let parent = path.reduce((obj, prop) => obj[prop], obj);
-      const rawValue = last ? parent[last] : parent;
-      if (!last) {
-        parent = undefined;
-      }
-      if (rawValue === undefined) {
-        switch (type) {
-          case MessageType.GET:
-          case MessageType.SET:
-            break;
-          default:
-            console.warn("Undefined", obj, path, last);
-            throw new Error("undefined!!");
-        }
-      }
-      switch (type) {
-        case MessageType.GET:
-          {
-            returnValue = rawValue;
-          }
-          break;
-        case MessageType.SET:
-          {
-            parent[last!] = fromWireValue(ep, ev.data.value);
-            returnValue = true;
-          }
-          break;
-        case MessageType.APPLY:
-          {
-            if (last) {
-              returnValue = parent[last].apply(parent, argumentList);
-            } else {
-              returnValue = rawValue.apply(parent, argumentList);
-            }
-          }
-          break;
-        case MessageType.CONSTRUCT:
-          {
-            const value = new rawValue(...argumentList);
-            returnValue = proxy(value);
-          }
-          break;
-        case MessageType.ENDPOINT:
-          {
-            const { port1, port2 } = new MessageChannel();
-            expose(obj, port2);
-            returnValue = transfer(port1, [port1]);
-          }
-          break;
-        case MessageType.RELEASE:
-          {
-            returnValue = undefined;
-          }
-          break;
-        case MessageType.DESTROY:
-          {
-            storeDeleteKey(ep, store_key!);
-            returnValue = undefined;
-          }
-          break;
-        default:
-          return;
-      }
-      returnValue = await returnValue;
+      returnValue = await innerMessageHandler(obj_arg, ep, message);
     } catch (value) {
       returnValue = { value, [throwMarker]: 0 };
     }
@@ -308,6 +318,8 @@ export function createProxy<T>(
     get(_target, prop) {
       throwIfProxyReleased(isProxyReleased);
       switch (prop) {
+        case "$$ep":
+          return ep;
         case Symbol.toStringTag:
           return "ComlinkProxy";
         case releaseProxy:
@@ -341,6 +353,14 @@ export function createProxy<T>(
                 isProxyReleased = true;
               }
             );
+          };
+        case "_as_message":
+          return () => {
+            return {
+              type: MessageType.GET,
+              store_key,
+              path: path.map((p) => p.toString()),
+            };
           };
         case "then":
         case "schedule_async":

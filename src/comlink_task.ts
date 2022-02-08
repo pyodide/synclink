@@ -136,6 +136,7 @@ export class ComlinkTask {
       this._resolved = true;
       this._result = fromWireValue(this.endpoint, value);
     } catch (e) {
+      console.warn("synclink exception:", e);
       this._exception = e;
     }
     return true;
