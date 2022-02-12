@@ -7,7 +7,7 @@ function config({ format, minify, input, ext = "js" }) {
   return {
     input: `./src/${input}.ts`,
     output: {
-      name: "Comlink",
+      name: "Synclink",
       file: `${dir}/${input}${minifierSuffix}.${ext}`,
       format,
       sourcemap: true,
@@ -22,7 +22,7 @@ function config({ format, minify, input, ext = "js" }) {
           },
           // Don’t ask. Without this, the typescript plugin is convinced
           // to create subfolders and misplace the .d.ts files.
-          files: ["./src/comlink.ts", "./src/protocol.ts"],
+          files: ["./src/synclink.ts", "./src/protocol.ts"],
         },
       }),
       minify
@@ -38,14 +38,10 @@ function config({ format, minify, input, ext = "js" }) {
 require("rimraf").sync("dist");
 
 export default [
-  { input: "comlink", format: "esm", minify: false, ext: "mjs" },
-  { input: "comlink", format: "esm", minify: true, ext: "mjs" },
-  { input: "comlink", format: "esm", minify: false },
-  { input: "comlink", format: "esm", minify: true },
-  { input: "comlink", format: "umd", minify: false },
-  { input: "comlink", format: "umd", minify: true },
-  { input: "node-adapter", format: "esm", minify: false, ext: "mjs" },
-  { input: "node-adapter", format: "esm", minify: true, ext: "mjs" },
-  { input: "node-adapter", format: "umd", minify: false },
-  { input: "node-adapter", format: "umd", minify: true },
+  { input: "synclink", format: "esm", minify: false, ext: "mjs" },
+  { input: "synclink", format: "esm", minify: true, ext: "mjs" },
+  { input: "synclink", format: "esm", minify: false },
+  { input: "synclink", format: "esm", minify: true },
+  { input: "synclink", format: "umd", minify: false },
+  { input: "synclink", format: "umd", minify: true },
 ].map(config);

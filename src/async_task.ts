@@ -24,7 +24,7 @@ import {
   storeDeleteKey,
 } from "./transfer_handlers";
 
-import { ComlinkTask, syncResponse } from "./comlink_task";
+import { SynclinkTask, syncResponse } from "./task";
 
 // import { syncRequest, syncResponse } from "./synclink";
 
@@ -324,7 +324,7 @@ export function createProxy<T>(
           return "ComlinkProxy";
         case releaseProxy:
           return () => {
-            new ComlinkTask(
+            new SynclinkTask(
               ep,
               {
                 type: MessageType.RELEASE,
@@ -342,7 +342,7 @@ export function createProxy<T>(
             return () => {};
           }
           return () => {
-            return new ComlinkTask(
+            return new SynclinkTask(
               ep,
               {
                 type: MessageType.DESTROY,
@@ -369,7 +369,7 @@ export function createProxy<T>(
           if (path.length === 0 && prop === "then") {
             return { then: () => proxy };
           }
-          let r = new ComlinkTask(ep, {
+          let r = new SynclinkTask(ep, {
             type: MessageType.GET,
             store_key,
             path: path.map((p) => p.toString()),
@@ -416,7 +416,7 @@ export function createProxy<T>(
         ep,
         rawArgumentList
       );
-      return new ComlinkTask(
+      return new SynclinkTask(
         ep,
         {
           type: MessageType.APPLY,

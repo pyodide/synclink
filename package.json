@@ -1,10 +1,10 @@
 {
-  "name": "comlink",
+  "name": "synclink",
   "version": "4.3.0",
-  "description": "Comlink makes WebWorkers enjoyable",
-  "main": "dist/umd/comlink.js",
-  "module": "dist/esm/comlink.mjs",
-  "types": "dist/umd/comlink.d.ts",
+  "description": "Synchronously or asynchronously communicate with a worker",
+  "main": "dist/umd/synclink.js",
+  "module": "dist/esm/synclink.mjs",
+  "types": "dist/umd/synclink.d.ts",
   "sideEffects": false,
   "scripts": {
     "build": "rollup -c",
@@ -20,12 +20,12 @@
     "hooks": {}
   },
   "author": {
-    "name": "Surma",
-    "email": "surma@google.com"
+    "name": "Hood Chatham",
+    "email": "roberthoodchatham@gmail.com"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/GoogleChromeLabs/comlink.git"
+    "url": "https://github.com/hoodmane/synclink.git"
   },
   "license": "Apache-2.0",
   "devDependencies": {

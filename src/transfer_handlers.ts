@@ -1,6 +1,6 @@
 import { Endpoint, WireValue, WireValueType, StoreKey } from "./protocol";
 import { generateUUID } from "./request_response";
-import { createProxy } from "./asynclink";
+import { createProxy } from "./async_task";
 
 export const throwMarker = Symbol("Comlink.thrown");
 

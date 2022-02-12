@@ -27,7 +27,7 @@ function sleep(ms: number) {
  * synchronously (the harder way). Either way, this promise does not start out
  * as scheduled, you
  */
-export class ComlinkTask {
+export class SynclinkTask {
   endpoint: Endpoint;
   msg: Message;
   extra: () => void;
@@ -150,7 +150,7 @@ export class ComlinkTask {
     let taskId = this.taskId;
     // Ensure status is cleared. We will notify
     let data_buffer = acquireDataBuffer(UUID_LENGTH);
-    console.log("===requesting", taskId);
+    // console.log("===requesting", taskId);
     endpoint.postMessage(
       {
         ...msg,
@@ -170,12 +170,12 @@ export class ComlinkTask {
       releaseDataBuffer(data_buffer);
       const size = Atomics.load(size_buffer, SZ_BUF_SIZE_IDX);
       data_buffer = acquireDataBuffer(size);
-      console.log("===bigger data buffer", taskId);
+      // console.log("===bigger data buffer", taskId);
       endpoint.postMessage({ id, data_buffer });
       yield;
     }
     const size = Atomics.load(size_buffer, SZ_BUF_SIZE_IDX);
-    console.log("===completing", taskId);
+    // console.log("===completing", taskId);
     return JSON.parse(decoder.decode(data_buffer.slice(0, size)));
   }
 
@@ -193,7 +193,7 @@ export class ComlinkTask {
     if (this._exception) {
       throw this._exception;
     }
-    console.log(this._resolved);
+    // console.log(this._resolved);
     if (this._resolved) {
       return this._result;
     }
@@ -310,14 +310,14 @@ export function setInterruptHandler(handler: () => never) {
 class _Syncifier {
   nextTaskId: Int32Array;
   signal_buffer: Int32Array;
-  tasks: Map<number, ComlinkTask>;
+  tasks: Map<number, SynclinkTask>;
   constructor() {
     this.nextTaskId = new Int32Array([1]);
     this.signal_buffer = new Int32Array(new SharedArrayBuffer(32 * 4 + 4));
     this.tasks = new Map();
   }
 
-  scheduleTask(task: ComlinkTask) {
+  scheduleTask(task: SynclinkTask) {
     task.taskId = this.nextTaskId[0];
     this.nextTaskId[0] += 2;
     task.signal_buffer = this.signal_buffer;
@@ -355,7 +355,7 @@ class _Syncifier {
     }
   }
 
-  pollTasks(task?: ComlinkTask) {
+  pollTasks(task?: SynclinkTask) {
     let result = false;
     for (let wokenTaskId of this.tasksIdsToWakeup()) {
       // console.log("poll task", wokenTaskId, "looking for",task);
@@ -374,7 +374,7 @@ class _Syncifier {
     return result;
   }
 
-  syncifyTask(task: ComlinkTask) {
+  syncifyTask(task: SynclinkTask) {
     while (true) {
       this.waitOnSignalBuffer();
       // console.log("syncifyTask:: woke");
