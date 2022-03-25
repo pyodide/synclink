@@ -52,7 +52,7 @@ export const transferHandlers = new Map<
 
 function isPlain(val: any) {
   return (
-    typeof val === "undefined" ||
+    !val ||
     typeof val === "string" ||
     typeof val === "boolean" ||
     typeof val === "number" ||
