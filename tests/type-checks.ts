@@ -180,7 +180,7 @@ async function closureSoICanUseAwait() {
     assert<Has<typeof r7, Promise<number>>>(true);
 
     const ProxiedFooClass = Comlink.wrap<typeof Foo>(
-      Comlink.windowEndpoint(self)
+      Comlink.windowEndpoint(self),
     );
     const inst1 = await new ProxiedFooClass("test");
     assert<IsExact<typeof inst1, Comlink.Remote<Foo>>>(true);
@@ -225,7 +225,7 @@ async function closureSoICanUseAwait() {
     /** A Subscribable that can get proxied by Comlink */
     interface ProxyableSubscribable<T> extends Comlink.ProxyMarked {
       subscribe(
-        subscriber: Comlink.Remote<Subscriber<T> & Comlink.ProxyMarked>
+        subscriber: Comlink.Remote<Subscriber<T> & Comlink.ProxyMarked>,
       ): Unsubscribable & Comlink.ProxyMarked;
     }
 
@@ -239,7 +239,7 @@ async function closureSoICanUseAwait() {
         provider: Comlink.Remote<
           ((params: Params) => ProxyableSubscribable<string>) &
             Comlink.ProxyMarked
-        >
+        >,
       ) {
         const resultPromise = provider({ textDocument: "foo" });
         assert<
@@ -278,7 +278,9 @@ async function closureSoICanUseAwait() {
       Comlink.proxy(({ textDocument }: Params) => {
         const subscribable = Comlink.proxy({
           subscribe(
-            subscriber: Comlink.Remote<Subscriber<string> & Comlink.ProxyMarked>
+            subscriber: Comlink.Remote<
+              Subscriber<string> & Comlink.ProxyMarked
+            >,
           ): Unsubscribable & Comlink.ProxyMarked {
             // Important to test here is that union types (such as Function | undefined) distribute properly
             // when wrapped in Promises/proxied
@@ -319,14 +321,16 @@ async function closureSoICanUseAwait() {
         });
         assert<Has<typeof subscribable, Comlink.ProxyMarked>>(true);
         return subscribable;
-      })
+      }),
     );
     proxy2.registerProvider(
       // Async callback
       Comlink.proxy(async ({ textDocument }: Params) => {
         const subscribable = Comlink.proxy({
           subscribe(
-            subscriber: Comlink.Remote<Subscriber<string> & Comlink.ProxyMarked>
+            subscriber: Comlink.Remote<
+              Subscriber<string> & Comlink.ProxyMarked
+            >,
           ): Unsubscribable & Comlink.ProxyMarked {
             assert<IsAny<typeof subscriber.next>>(false);
             assert<
@@ -346,7 +350,7 @@ async function closureSoICanUseAwait() {
           },
         });
         return subscribable;
-      })
+      }),
     );
   }
 

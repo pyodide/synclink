@@ -278,7 +278,7 @@ export function expose(obj_arg: any, ep: Endpoint = self as any) {
       ep.postMessage({ ...wireValue, id }, transferables);
     }
     if (type === MessageType.RELEASE) {
-      // detach and deactive after sending release response above.
+      // detach and deactivate after sending release response above.
       ep.removeEventListener("message", callback as any);
       closeEndPoint(ep);
     }
@@ -302,7 +302,7 @@ export function wrap<T>(ep: Endpoint, target?: any): Remote<T> {
 
 function throwIfProxyReleased(isReleased: boolean) {
   if (isReleased) {
-    throw new Error("Proxy has been released and is not useable");
+    throw new Error("Proxy has been released and is not usable");
   }
 }
 
@@ -311,7 +311,7 @@ export function createProxy<T>(
   store_key?: StoreKey,
   path: (string | number | symbol)[] = [],
   target: object = function () {},
-  keys = []
+  keys = [],
 ): Remote<T> {
   let isProxyReleased = false;
   const proxy = new Proxy(target, {
@@ -334,7 +334,7 @@ export function createProxy<T>(
               () => {
                 closeEndPoint(ep);
                 isProxyReleased = true;
-              }
+              },
             );
           };
         case "__destroy__":
@@ -351,7 +351,7 @@ export function createProxy<T>(
               [],
               () => {
                 isProxyReleased = true;
-              }
+              },
             );
           };
         case "_as_message":
@@ -392,7 +392,7 @@ export function createProxy<T>(
           path: [...path, prop].map((p) => p.toString()),
           value,
         },
-        transferables
+        transferables,
       ).then((v) => fromWireValue(ep, v)) as any;
     },
     apply(_target, _thisArg, rawArgumentList) {
@@ -414,7 +414,7 @@ export function createProxy<T>(
       }
       const [argumentList, transferables] = processArguments(
         ep,
-        rawArgumentList
+        rawArgumentList,
       );
       return new SynclinkTask(
         ep,
@@ -424,14 +424,14 @@ export function createProxy<T>(
           path: path.map((p) => p.toString()),
           argumentList,
         },
-        transferables
+        transferables,
       );
     },
     construct(_target, rawArgumentList) {
       throwIfProxyReleased(isProxyReleased);
       const [argumentList, transferables] = processArguments(
         ep,
-        rawArgumentList
+        rawArgumentList,
       );
       return requestResponseMessage(
         ep,
@@ -441,7 +441,7 @@ export function createProxy<T>(
           path: path.map((p) => p.toString()),
           argumentList,
         },
-        transferables
+        transferables,
       ).then((v) => fromWireValue(ep, v));
     },
     ownKeys(_target) {
@@ -457,7 +457,7 @@ function myFlat<T>(arr: (T | T[])[]): T[] {
 
 function processArguments(
   ep: Endpoint,
-  argumentList: any[]
+  argumentList: any[],
 ): [WireValue[], Transferable[]] {
   const processed = argumentList.map((v) => toWireValue(ep, v));
   return [processed.map((v) => v[0]), myFlat(processed.map((v) => v[1]))];
@@ -466,7 +466,7 @@ function processArguments(
 export function windowEndpoint(
   w: PostMessageWithOrigin,
   context: EventSource = self,
-  targetOrigin = "*"
+  targetOrigin = "*",
 ): Endpoint {
   return {
     postMessage: (msg: any, transferables: Transferable[]) =>

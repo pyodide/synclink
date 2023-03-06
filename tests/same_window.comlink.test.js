@@ -124,7 +124,7 @@ describe("Comlink in the same realm", function () {
           throw new Error("Should have thrown");
         },
       },
-      this.port2
+      this.port2,
     );
     try {
       await thing.throwError();
@@ -187,7 +187,7 @@ describe("Comlink in the same realm", function () {
     const thing = Comlink.wrap(this.port1);
     Comlink.expose(
       (_) => new Promise((resolve) => setTimeout((_) => resolve(4), 100)),
-      this.port2
+      this.port2,
     );
     expect(await thing()).to.equal(4);
   });
@@ -328,7 +328,7 @@ describe("Comlink in the same realm", function () {
       const thing = Comlink.wrap(b1);
       Comlink.expose((b) => 40 + b, b2);
       expect(await thing(2)).to.equal(42);
-    }
+    },
   );
 
   // Buffer transfers seem to have regressed in Safari 11.1, it’s fixed in 11.2.
@@ -373,10 +373,10 @@ describe("Comlink in the same realm", function () {
       Comlink.expose((a) => a.b.c.d.byteLength, this.port2);
       const buffer = new Uint8Array([1, 2, 3]).buffer;
       expect(
-        await thing(Comlink.transfer({ b: { c: { d: buffer } } }, [buffer]))
+        await thing(Comlink.transfer({ b: { c: { d: buffer } } }, [buffer])),
       ).to.equal(3);
       expect(buffer.byteLength).to.equal(0);
-    }
+    },
   );
 
   it("will transfer a message port", async function () {
@@ -402,7 +402,7 @@ describe("Comlink in the same realm", function () {
             this.counter += 1;
           },
         }),
-      this.port2
+      this.port2,
     );
     const obj = await thing();
     expect(await obj.counter).to.equal(0);
@@ -474,8 +474,8 @@ describe("Comlink in the same realm", function () {
       await thing(
         Comlink.proxy((_) => 1),
         Comlink.proxy((_) => 2),
-        Comlink.proxy((_) => 3)
-      )
+        Comlink.proxy((_) => 3),
+      ),
     ).to.equal(6);
   });
 
@@ -518,7 +518,7 @@ describe("Comlink in the same realm", function () {
           return 6;
         },
       },
-      this.port2
+      this.port2,
     );
     const { a, b, c } = Comlink.wrap(this.port1);
     expect(await a).to.equal(4);
@@ -548,7 +548,7 @@ describe("Comlink in the same realm", function () {
 
     const { port1, port2 } = new MessageChannel();
     port1.addEventListener("message", (msg) =>
-      thing.call(this, msg).schedule_async()
+      thing.call(this, msg).schedule_async(),
     );
     port1.start();
     port2.postMessage({ a: 1 });
@@ -562,7 +562,7 @@ describe("Comlink in the same realm", function () {
           return 5;
         },
       },
-      this.port2
+      this.port2,
     );
     const proxy = Comlink.wrap(this.port1);
     const otherEp = await proxy[Comlink.createEndpoint]();
@@ -573,7 +573,7 @@ describe("Comlink in the same realm", function () {
     expect(await proxy.c()).to.equal(5);
   });
 
-  it("released proxy should no longer be useable and throw an exception", async function () {
+  it("released proxy should no longer be usable and throw an exception", async function () {
     const thing = Comlink.wrap(this.port1);
     Comlink.expose(SampleClass, this.port2);
     const instance = await new thing();

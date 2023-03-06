@@ -1,5 +1,5 @@
 /**
- * Support blocking calls accross a MessagePort.
+ * Support blocking calls across a MessagePort.
  *
  * We use Atomics.wait to block the thread making the request.
  */
@@ -106,7 +106,7 @@ export function* syncRequest(task: ProxyPromise) {
   Atomics.store(size_buffer, 1, 0);
   endpoint.postMessage(
     { ...msg, size_buffer, data_buffer, syncify: true },
-    transfers
+    transfers,
   );
   yield;
   waitOnSizeBuffer();
@@ -130,7 +130,7 @@ export function* syncRequest(task: ProxyPromise) {
  *
  * @param endpoint A message port to receive messages from. Other thread is
  *        blocked, so we can't send messages back.
- * @param msg The message that was recieved. We will use it to read out the
+ * @param msg The message that was received. We will use it to read out the
  *        buffers to write the answer into. NOTE: requester owns buffers.
  * @param returnValue The value we want to send back to the requester. We have
  *        to encode it into data_buffer.
@@ -138,7 +138,7 @@ export function* syncRequest(task: ProxyPromise) {
 export async function syncResponse(
   endpoint: Endpoint,
   msg: any,
-  returnValue: WireValue
+  returnValue: WireValue,
 ) {
   try {
     let { size_buffer, data_buffer } = msg;

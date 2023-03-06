@@ -54,7 +54,7 @@ export class SynclinkTask {
     endpoint: Endpoint,
     msg: Message,
     transfers: Transferable[] = [],
-    extra: () => void = () => {}
+    extra: () => void = () => {},
   ) {
     this.endpoint = endpoint;
     this.msg = msg;
@@ -86,14 +86,14 @@ export class SynclinkTask {
       (reason) => {
         this._exception = reason;
         this._reject(reason);
-      }
+      },
     );
     return this;
   }
 
   async then(
     onfulfilled: (value: any) => any,
-    onrejected: (reason: any) => any
+    onrejected: (reason: any) => any,
   ) {
     this.schedule_async();
     return this._promise.then(onfulfilled, onrejected);
@@ -160,7 +160,7 @@ export class SynclinkTask {
         taskId,
         syncify: true,
       },
-      transfers
+      transfers,
     );
     yield;
     if (Atomics.load(size_buffer, SZ_BUF_FITS_IDX) === SZ_BUF_DOESNT_FIT) {
@@ -183,7 +183,7 @@ export class SynclinkTask {
     let result = await requestResponseMessage(
       this.endpoint,
       this.msg,
-      this.transfers
+      this.transfers,
     );
     this.extra();
     return fromWireValue(this.endpoint, result);
@@ -230,7 +230,7 @@ async function signalRequester(signal_buffer: Uint32Array, taskId: number) {
  *
  * @param endpoint A message port to receive messages from. Other thread is
  *        blocked, so we can't send messages back.
- * @param msg The message that was recieved. We will use it to read out the
+ * @param msg The message that was received. We will use it to read out the
  *        buffers to write the answer into. NOTE: requester owns buffers.
  * @param returnValue The value we want to send back to the requester. We have
  *        to encode it into data_buffer.
@@ -238,7 +238,7 @@ async function signalRequester(signal_buffer: Uint32Array, taskId: number) {
 export async function syncResponse(
   endpoint: Endpoint,
   msg: any,
-  returnValue: WireValue
+  returnValue: WireValue,
 ) {
   try {
     let { size_buffer, data_buffer, signal_buffer, taskId } = msg;

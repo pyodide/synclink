@@ -2,7 +2,7 @@ import { Endpoint, Message, WireValue } from "./protocol";
 export { requestResponseMessageInner, requestResponseMessage };
 
 function requestResponseMessageInner(
-  ep: Endpoint
+  ep: Endpoint,
 ): [string, Promise<WireValue>] {
   const id = generateUUID();
   return [
@@ -25,7 +25,7 @@ function requestResponseMessageInner(
 function requestResponseMessage(
   ep: Endpoint,
   msg: Message,
-  transfers?: Transferable[]
+  transfers?: Transferable[],
 ): Promise<WireValue> {
   let [id, promise] = requestResponseMessageInner(ep);
   ep.postMessage({ id, ...msg }, transfers);

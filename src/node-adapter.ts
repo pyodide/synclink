@@ -18,12 +18,12 @@ export interface NodeEndpoint {
   on(
     type: string,
     listener: EventListenerOrEventListenerObject,
-    options?: {}
+    options?: {},
   ): void;
   off(
     type: string,
     listener: EventListenerOrEventListenerObject,
-    options?: {}
+    options?: {},
   ): void;
   start?: () => void;
 }
