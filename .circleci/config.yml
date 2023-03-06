@@ -62,7 +62,6 @@ workflows:
   build-and-deploy:
     jobs:
       - npm-install
-      - lint
       - test-types:
           requires:
             - npm-install
