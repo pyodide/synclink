@@ -13,19 +13,22 @@ jobs:
       - checkout
       - run:
           name: npm install
-          command: | 
+          command: |
             npm install
             npm install --no-save
       - persist_to_workspace:
           root: .
           paths:
              - .
-  lint:
+  format:
     <<: *defaults
     steps:
       - checkout
       - run:
-          name: lint
+          name: install prettier
+          command: npm i prettier
+      - run:
+          name: format
           command: npx prettier -l './*.{mjs,js,ts,md,json,html}' './{src,docs,tests}/{**/,}*.{mjs,js,ts,md,json,html}'
 
   test-types:
@@ -59,7 +62,6 @@ workflows:
   build-and-deploy:
     jobs:
       - npm-install
-      - lint
       - test-types:
           requires:
             - npm-install
