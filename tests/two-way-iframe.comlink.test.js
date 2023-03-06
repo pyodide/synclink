@@ -11,9 +11,9 @@
  * limitations under the License.
  */
 
-import * as Comlink from "/base/dist/esm/comlink.mjs";
+import * as Synclink from "/base/dist/esm/synclink.mjs";
 
-describe("Comlink across iframes", function () {
+describe("Synclink across iframes", function () {
   beforeEach(function () {
     this.ifr = document.createElement("iframe");
     this.ifr.sandbox.add("allow-scripts", "allow-same-origin");
@@ -28,12 +28,12 @@ describe("Comlink across iframes", function () {
 
   it("can communicate both ways", async function () {
     let called = false;
-    const iframe = Comlink.windowEndpoint(this.ifr.contentWindow);
-    Comlink.expose((a) => {
+    const iframe = Synclink.windowEndpoint(this.ifr.contentWindow);
+    Synclink.expose((a) => {
       called = true;
       return ++a;
     }, iframe);
-    const proxy = Comlink.wrap(iframe);
+    const proxy = Synclink.wrap(iframe);
     expect(await proxy(1, 3)).to.equal(5);
     expect(called).to.equal(true);
   });

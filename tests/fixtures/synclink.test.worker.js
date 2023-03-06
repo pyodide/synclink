@@ -1,4 +1,4 @@
-importScripts("/base/dist/umd/comlink.js");
+importScripts("/base/dist/umd/synclink.js");
 async function get_from_main_window(x) {
   return await self.main_window[x];
 }
@@ -60,7 +60,7 @@ function set_global_scope(window) {
   self.main_window = window;
 }
 
-Comlink.expose({
+Synclink.expose({
   get_from_main_window,
   set_global_scope,
   test,

@@ -2,7 +2,7 @@ import { Endpoint, WireValue, WireValueType, StoreKey } from "./protocol";
 import { generateUUID } from "./request_response";
 import { createProxy } from "./async_task";
 
-export const throwMarker = Symbol("Comlink.thrown");
+export const throwMarker = Symbol("Synclink.thrown");
 
 const transferCache = new WeakMap<any, Transferable[]>();
 export function transfer<T>(obj: T, transfers: Transferable[]): T {
@@ -148,7 +148,7 @@ export function toWireValue(
       [],
     ];
   }
-  if (value && value.constructor && value.constructor.name === "ComlinkTask") {
+  if (value && value.constructor && value.constructor.name === "SynclinkTask") {
     return [
       {
         type: WireValueType.PROXY,
@@ -207,8 +207,8 @@ export function fromWireValue(ep: Endpoint, value: WireValue): any {
   }
 }
 
-const proxyStore = Symbol("Comlink.proxyStore");
-const endpointUUID = Symbol("Comlink.endpointUUID");
+const proxyStore = Symbol("Synclink.proxyStore");
+const endpointUUID = Symbol("Synclink.endpointUUID");
 
 export function storeCreate(obj: any) {
   if (proxyStore in obj) {
