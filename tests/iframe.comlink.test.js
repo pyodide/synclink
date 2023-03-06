@@ -27,7 +27,9 @@ describe("Synclink across iframes", function () {
   });
 
   it("can communicate", async function () {
-    const proxy = Synclink.wrap(Synclink.windowEndpoint(this.ifr.contentWindow));
+    const proxy = Synclink.wrap(
+      Synclink.windowEndpoint(this.ifr.contentWindow),
+    );
     expect(await proxy(1, 3)).to.equal(4);
   });
 });

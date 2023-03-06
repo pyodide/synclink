@@ -104,7 +104,9 @@ async function closureSoICanUseAwait() {
     class Foo {
       constructor(cParam: string) {
         const self = this;
-        assert<IsExact<typeof self.proxyProp, Bar & Synclink.ProxyMarked>>(true);
+        assert<IsExact<typeof self.proxyProp, Bar & Synclink.ProxyMarked>>(
+          true,
+        );
       }
       prop1: string = "abc";
       proxyProp = Synclink.proxy(new Bar());
@@ -143,7 +145,10 @@ async function closureSoICanUseAwait() {
     assert<IsExact<typeof r2, Promise<number>>>(true);
 
     assert<
-      IsExact<typeof proxy.proxyProp, Synclink.Remote<Bar & Synclink.ProxyMarked>>
+      IsExact<
+        typeof proxy.proxyProp,
+        Synclink.Remote<Bar & Synclink.ProxyMarked>
+      >
     >(true);
 
     assert<IsAny<typeof proxy.proxyProp.prop2>>(false);
