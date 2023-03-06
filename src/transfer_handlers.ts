@@ -128,7 +128,7 @@ export const throwTransferHandler: TransferHandler<
     if (serialized.isError) {
       throw Object.assign(
         new Error(serialized.value.message),
-        serialized.value
+        serialized.value,
       );
     }
     throw serialized.value;
@@ -137,7 +137,7 @@ export const throwTransferHandler: TransferHandler<
 
 export function toWireValue(
   ep: Endpoint,
-  value: any
+  value: any,
 ): [WireValue, Transferable[]] {
   if (value && value.$$ep === ep) {
     return [

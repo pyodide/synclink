@@ -36,11 +36,7 @@ export {
   Local,
 } from "./async_task";
 
-export {
-  interrupt_buffer,
-  setInterruptHandler,
-  Syncifier,
-} from "./task";
+export { interrupt_buffer, setInterruptHandler, Syncifier } from "./task";
 
 import { proxyTransferHandler } from "./async_task";
 

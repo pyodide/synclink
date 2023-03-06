@@ -51,7 +51,7 @@ function test5(name) {
   return JSON.stringify(results);
 }
 
-function proxy_arg_test(){
+function proxy_arg_test() {
   const x = self.main_window.f().syncify();
   return self.main_window.g(x);
 }

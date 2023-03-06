@@ -32,7 +32,7 @@ init();
 ```javascript
 importScripts("synclink.js");
 
-async function fetch(url){
+async function fetch(url) {
   const resp = await fetch(url);
   return await resp.text();
 }

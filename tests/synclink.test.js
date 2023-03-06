@@ -7,7 +7,7 @@ function sleep(ms) {
 describe("xxx xxxx xxxxx", function () {
   beforeEach(async function () {
     this.worker = Comlink.wrap(
-      new Worker("/base/tests/fixtures/synclink.test.worker.js")
+      new Worker("/base/tests/fixtures/synclink.test.worker.js"),
     );
     const fetch = window.fetch.bind(window);
     this.worker_scope = { fetch };
@@ -23,10 +23,10 @@ describe("xxx xxxx xxxxx", function () {
     this.worker_scope.ttt = ttt;
     expect(await this.worker.get_from_main_window("ttt")).to.equal(ttt);
     expect(await this.worker.test("debug.html")).to.contain(
-      "This file is almost the same as context.html"
+      "This file is almost the same as context.html",
     );
     expect(await this.worker.test2("debug.html")).to.contain(
-      "This file is almost the same as context.html"
+      "This file is almost the same as context.html",
     );
   });
 
@@ -38,7 +38,7 @@ describe("xxx xxxx xxxxx", function () {
         status: 200,
         ok: true,
         statusText: "OK",
-      })
+      }),
     );
   });
 
@@ -52,7 +52,7 @@ describe("xxx xxxx xxxxx", function () {
     };
     this.worker_scope.f = f;
     expect(await this.worker.test4("f")).to.equal(
-      JSON.stringify([0, 0, 0, 0, 0])
+      JSON.stringify([0, 0, 0, 0, 0]),
     );
   });
 
@@ -66,19 +66,19 @@ describe("xxx xxxx xxxxx", function () {
     };
     this.worker_scope.f = f;
     expect(await this.worker.test5("f")).to.equal(
-      JSON.stringify([0, 1, 2, 3, 4])
+      JSON.stringify([0, 1, 2, 3, 4]),
     );
   });
 
-  it("proxy_arg", async function(){
-    function f(){
+  it("proxy_arg", async function () {
+    function f() {
       return {
-        method(){
-            return "abc!!";
-        }
+        method() {
+          return "abc!!";
+        },
       };
     }
-    function g(x){
+    function g(x) {
       return x.method();
     }
     this.worker_scope.f = f;
