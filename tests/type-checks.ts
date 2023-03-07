@@ -1,6 +1,6 @@
 import { assert, Has, NotHas, IsAny, IsExact } from "conditional-type-checks";
 
-import * as Comlink from "../src/comlink.js";
+import * as Synclink from "../src/synclink.js";
 
 async function closureSoICanUseAwait() {
   {
@@ -8,7 +8,7 @@ async function closureSoICanUseAwait() {
       return 4;
     }
 
-    const proxy = Comlink.wrap<typeof simpleNumberFunction>(0 as any);
+    const proxy = Synclink.wrap<typeof simpleNumberFunction>(0 as any);
     assert<IsAny<typeof proxy>>(false);
     const v = proxy();
     assert<Has<typeof v, Promise<number>>>(true);
@@ -19,7 +19,7 @@ async function closureSoICanUseAwait() {
       return { a: 3 };
     }
 
-    const proxy = Comlink.wrap<typeof simpleObjectFunction>(0 as any);
+    const proxy = Synclink.wrap<typeof simpleObjectFunction>(0 as any);
     const v = await proxy();
     assert<Has<typeof v, { a: number }>>(true);
   }
@@ -29,17 +29,17 @@ async function closureSoICanUseAwait() {
       return { a: 3 };
     }
 
-    const proxy = Comlink.wrap<typeof simpleAsyncFunction>(0 as any);
+    const proxy = Synclink.wrap<typeof simpleAsyncFunction>(0 as any);
     const v = await proxy();
     assert<Has<typeof v, { a: number }>>(true);
   }
 
   {
     function functionWithProxy() {
-      return Comlink.proxy({ a: 3 });
+      return Synclink.proxy({ a: 3 });
     }
 
-    const proxy = Comlink.wrap<typeof functionWithProxy>(0 as any);
+    const proxy = Synclink.wrap<typeof functionWithProxy>(0 as any);
     const subproxy = await proxy();
     const prop = subproxy.a;
     assert<Has<typeof prop, Promise<number>>>(true);
@@ -57,7 +57,7 @@ async function closureSoICanUseAwait() {
       }
     }
 
-    const proxy = Comlink.wrap<typeof X>(0 as any);
+    const proxy = Synclink.wrap<typeof X>(0 as any);
     assert<Has<typeof proxy, { staticFunc: () => Promise<number> }>>(true);
     const instance = await new proxy();
     assert<Has<typeof instance, { sayHi: () => Promise<string> }>>(true);
@@ -77,7 +77,7 @@ async function closureSoICanUseAwait() {
       },
     };
 
-    const proxy = Comlink.wrap<typeof x>(0 as any);
+    const proxy = Synclink.wrap<typeof x>(0 as any);
     assert<IsAny<typeof proxy>>(false);
     const a = proxy.a;
     assert<Has<typeof a, Promise<number>>>(true);
@@ -93,8 +93,8 @@ async function closureSoICanUseAwait() {
   }
 
   {
-    Comlink.wrap(new MessageChannel().port1);
-    Comlink.expose({}, new MessageChannel().port2);
+    Synclink.wrap(new MessageChannel().port1);
+    Synclink.expose({}, new MessageChannel().port2);
 
     interface Baz {
       baz: number;
@@ -104,17 +104,19 @@ async function closureSoICanUseAwait() {
     class Foo {
       constructor(cParam: string) {
         const self = this;
-        assert<IsExact<typeof self.proxyProp, Bar & Comlink.ProxyMarked>>(true);
+        assert<IsExact<typeof self.proxyProp, Bar & Synclink.ProxyMarked>>(
+          true,
+        );
       }
       prop1: string = "abc";
-      proxyProp = Comlink.proxy(new Bar());
+      proxyProp = Synclink.proxy(new Bar());
       methodWithTupleParams(...args: [string] | [number, string]): number {
         return 123;
       }
-      methodWithProxiedReturnValue(): Baz & Comlink.ProxyMarked {
-        return Comlink.proxy({ baz: 123, method: () => 123 });
+      methodWithProxiedReturnValue(): Baz & Synclink.ProxyMarked {
+        return Synclink.proxy({ baz: 123, method: () => 123 });
       }
-      methodWithProxyParameter(param: Baz & Comlink.ProxyMarked): void {}
+      methodWithProxyParameter(param: Baz & Synclink.ProxyMarked): void {}
     }
 
     class Bar {
@@ -122,15 +124,15 @@ async function closureSoICanUseAwait() {
       method(param: string): number {
         return 123;
       }
-      methodWithProxiedReturnValue(): Baz & Comlink.ProxyMarked {
-        return Comlink.proxy({ baz: 123, method: () => 123 });
+      methodWithProxiedReturnValue(): Baz & Synclink.ProxyMarked {
+        return Synclink.proxy({ baz: 123, method: () => 123 });
       }
     }
-    const proxy = Comlink.wrap<Foo>(Comlink.windowEndpoint(self));
-    assert<IsExact<typeof proxy, Comlink.Remote<Foo>>>(true);
+    const proxy = Synclink.wrap<Foo>(Synclink.windowEndpoint(self));
+    assert<IsExact<typeof proxy, Synclink.Remote<Foo>>>(true);
 
-    proxy[Comlink.releaseProxy]();
-    const endp = proxy[Comlink.createEndpoint]();
+    proxy[Synclink.releaseProxy]();
+    const endp = proxy[Synclink.createEndpoint]();
     assert<IsExact<typeof endp, Promise<MessagePort>>>(true);
 
     assert<IsAny<typeof proxy.prop1>>(false);
@@ -143,7 +145,10 @@ async function closureSoICanUseAwait() {
     assert<IsExact<typeof r2, Promise<number>>>(true);
 
     assert<
-      IsExact<typeof proxy.proxyProp, Comlink.Remote<Bar & Comlink.ProxyMarked>>
+      IsExact<
+        typeof proxy.proxyProp,
+        Synclink.Remote<Bar & Synclink.ProxyMarked>
+      >
     >(true);
 
     assert<IsAny<typeof proxy.proxyProp.prop2>>(false);
@@ -163,12 +168,12 @@ async function closureSoICanUseAwait() {
     const r4 = proxy.methodWithProxiedReturnValue();
     assert<IsAny<typeof r4>>(false);
     assert<
-      IsExact<typeof r4, Promise<Comlink.Remote<Baz & Comlink.ProxyMarked>>>
+      IsExact<typeof r4, Promise<Synclink.Remote<Baz & Synclink.ProxyMarked>>>
     >(true);
 
     const r5 = proxy.proxyProp.methodWithProxiedReturnValue();
     assert<
-      IsExact<typeof r5, Promise<Comlink.Remote<Baz & Comlink.ProxyMarked>>>
+      IsExact<typeof r5, Promise<Synclink.Remote<Baz & Synclink.ProxyMarked>>>
     >(true);
 
     const r6 = (await proxy.methodWithProxiedReturnValue()).baz;
@@ -179,13 +184,13 @@ async function closureSoICanUseAwait() {
     assert<IsAny<typeof r7>>(false);
     assert<Has<typeof r7, Promise<number>>>(true);
 
-    const ProxiedFooClass = Comlink.wrap<typeof Foo>(
-      Comlink.windowEndpoint(self),
+    const ProxiedFooClass = Synclink.wrap<typeof Foo>(
+      Synclink.windowEndpoint(self),
     );
     const inst1 = await new ProxiedFooClass("test");
-    assert<IsExact<typeof inst1, Comlink.Remote<Foo>>>(true);
-    inst1[Comlink.releaseProxy]();
-    inst1[Comlink.createEndpoint]();
+    assert<IsExact<typeof inst1, Synclink.Remote<Foo>>>(true);
+    inst1[Synclink.releaseProxy]();
+    inst1[Synclink.createEndpoint]();
 
     // @ts-expect-error
     await new ProxiedFooClass(123);
@@ -201,8 +206,8 @@ async function closureSoICanUseAwait() {
     // This tests that Local is the exact inverse of Remote for objects:
     assert<
       IsExact<
-        Comlink.Local<Comlink.Remote<Comlink.ProxyMarked>>,
-        Comlink.ProxyMarked
+        Synclink.Local<Synclink.Remote<Synclink.ProxyMarked>>,
+        Synclink.ProxyMarked
       >
     >(true);
     // This tests that Local is the exact inverse of Remote for functions, with one difference:
@@ -210,7 +215,7 @@ async function closureSoICanUseAwait() {
     // because Remote<T> always makes the function async.
     assert<
       IsExact<
-        Comlink.Local<Comlink.Remote<(a: number) => string>>,
+        Synclink.Local<Synclink.Remote<(a: number) => string>>,
         (a: number) => string | Promise<string>
       >
     >(true);
@@ -222,11 +227,11 @@ async function closureSoICanUseAwait() {
     interface Unsubscribable {
       unsubscribe(): void;
     }
-    /** A Subscribable that can get proxied by Comlink */
-    interface ProxyableSubscribable<T> extends Comlink.ProxyMarked {
+    /** A Subscribable that can get proxied by Synclink */
+    interface ProxyableSubscribable<T> extends Synclink.ProxyMarked {
       subscribe(
-        subscriber: Comlink.Remote<Subscriber<T> & Comlink.ProxyMarked>,
-      ): Unsubscribable & Comlink.ProxyMarked;
+        subscriber: Synclink.Remote<Subscriber<T> & Synclink.ProxyMarked>,
+      ): Unsubscribable & Synclink.ProxyMarked;
     }
 
     /** Simple parameter object that gets cloned (not proxied) */
@@ -236,22 +241,22 @@ async function closureSoICanUseAwait() {
 
     class Registry {
       async registerProvider(
-        provider: Comlink.Remote<
+        provider: Synclink.Remote<
           ((params: Params) => ProxyableSubscribable<string>) &
-            Comlink.ProxyMarked
+            Synclink.ProxyMarked
         >,
       ) {
         const resultPromise = provider({ textDocument: "foo" });
         assert<
           IsExact<
             typeof resultPromise,
-            Promise<Comlink.Remote<ProxyableSubscribable<string>>>
+            Promise<Synclink.Remote<ProxyableSubscribable<string>>>
           >
         >(true);
         const result = await resultPromise;
 
         const subscriptionPromise = result.subscribe({
-          [Comlink.proxyMarker]: true,
+          [Synclink.proxyMarker]: true,
           next: (value) => {
             assert<IsExact<typeof value, string>>(true);
           },
@@ -259,10 +264,10 @@ async function closureSoICanUseAwait() {
         assert<
           IsExact<
             typeof subscriptionPromise,
-            Promise<Comlink.Remote<Unsubscribable & Comlink.ProxyMarked>>
+            Promise<Synclink.Remote<Unsubscribable & Synclink.ProxyMarked>>
           >
         >(true);
-        const subscriber = Comlink.proxy({
+        const subscriber = Synclink.proxy({
           next: (value: string) => console.log(value),
         });
         result.subscribe(subscriber);
@@ -271,17 +276,17 @@ async function closureSoICanUseAwait() {
         assert<IsExact<typeof r1, Promise<void>>>(true);
       }
     }
-    const proxy2 = Comlink.wrap<Registry>(Comlink.windowEndpoint(self));
+    const proxy2 = Synclink.wrap<Registry>(Synclink.windowEndpoint(self));
 
     proxy2.registerProvider(
       // Synchronous callback
-      Comlink.proxy(({ textDocument }: Params) => {
-        const subscribable = Comlink.proxy({
+      Synclink.proxy(({ textDocument }: Params) => {
+        const subscribable = Synclink.proxy({
           subscribe(
-            subscriber: Comlink.Remote<
-              Subscriber<string> & Comlink.ProxyMarked
+            subscriber: Synclink.Remote<
+              Subscriber<string> & Synclink.ProxyMarked
             >,
-          ): Unsubscribable & Comlink.ProxyMarked {
+          ): Unsubscribable & Synclink.ProxyMarked {
             // Important to test here is that union types (such as Function | undefined) distribute properly
             // when wrapped in Promises/proxied
 
@@ -297,7 +302,7 @@ async function closureSoICanUseAwait() {
             assert<
               IsExact<
                 typeof subscriber.next,
-                | Comlink.Remote<(value: string) => void>
+                | Synclink.Remote<(value: string) => void>
                 | Promise<undefined>
                 | undefined
               >
@@ -316,27 +321,27 @@ async function closureSoICanUseAwait() {
               subscriber.next("abc");
             }
 
-            return Comlink.proxy({ unsubscribe() {} });
+            return Synclink.proxy({ unsubscribe() {} });
           },
         });
-        assert<Has<typeof subscribable, Comlink.ProxyMarked>>(true);
+        assert<Has<typeof subscribable, Synclink.ProxyMarked>>(true);
         return subscribable;
       }),
     );
     proxy2.registerProvider(
       // Async callback
-      Comlink.proxy(async ({ textDocument }: Params) => {
-        const subscribable = Comlink.proxy({
+      Synclink.proxy(async ({ textDocument }: Params) => {
+        const subscribable = Synclink.proxy({
           subscribe(
-            subscriber: Comlink.Remote<
-              Subscriber<string> & Comlink.ProxyMarked
+            subscriber: Synclink.Remote<
+              Subscriber<string> & Synclink.ProxyMarked
             >,
-          ): Unsubscribable & Comlink.ProxyMarked {
+          ): Unsubscribable & Synclink.ProxyMarked {
             assert<IsAny<typeof subscriber.next>>(false);
             assert<
               IsExact<
                 typeof subscriber.next,
-                | Comlink.Remote<(value: string) => void>
+                | Synclink.Remote<(value: string) => void>
                 | Promise<undefined>
                 | undefined
               >
@@ -346,7 +351,7 @@ async function closureSoICanUseAwait() {
             if (typeof subscriber.next === "function") {
               subscriber.next("abc");
             }
-            return Comlink.proxy({ unsubscribe() {} });
+            return Synclink.proxy({ unsubscribe() {} });
           },
         });
         return subscribable;
@@ -356,7 +361,7 @@ async function closureSoICanUseAwait() {
 
   // Transfer handlers
   {
-    const urlTransferHandler: Comlink.TransferHandler<URL, string> = {
+    const urlTransferHandler: Synclink.TransferHandler<URL, string> = {
       canHandle: (val): val is URL => {
         assert<IsExact<typeof val, unknown>>(true);
         return val instanceof URL;
@@ -370,6 +375,6 @@ async function closureSoICanUseAwait() {
         return new URL(str);
       },
     };
-    Comlink.transferHandlers.set("URL", urlTransferHandler);
+    Synclink.transferHandlers.set("URL", urlTransferHandler);
   }
 }

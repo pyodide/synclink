@@ -1,4 +1,4 @@
-import * as Comlink from "/base/dist/esm/comlink.mjs";
+import * as Synclink from "/base/dist/esm/synclink.mjs";
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -6,12 +6,12 @@ function sleep(ms) {
 
 describe("xxx xxxx xxxxx", function () {
   beforeEach(async function () {
-    this.worker = Comlink.wrap(
+    this.worker = Synclink.wrap(
       new Worker("/base/tests/fixtures/synclink.test.worker.js"),
     );
     const fetch = window.fetch.bind(window);
     this.worker_scope = { fetch };
-    await this.worker.set_global_scope(Comlink.proxy(this.worker_scope));
+    await this.worker.set_global_scope(Synclink.proxy(this.worker_scope));
   });
 
   afterEach(function () {
