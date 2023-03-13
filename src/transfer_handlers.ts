@@ -50,6 +50,14 @@ export const transferHandlers = new Map<
   TransferHandler<unknown, unknown>
 >();
 
+
+function isArrayBufferOrView(obj: any): boolean {
+  return (
+    ArrayBuffer.isView(obj) ||
+    Object.prototype.toString.call(obj) === "[object ArrayBuffer]"
+  );
+}
+
 function isPlain(val: any) {
   return (
     !val ||
@@ -57,6 +65,7 @@ function isPlain(val: any) {
     typeof val === "boolean" ||
     typeof val === "number" ||
     Array.isArray(val) ||
+    isArrayBufferOrView(val) ||
     !val.constructor ||
     (val.constructor === Object &&
       Object.prototype.toString.call(val) === "[object Object]")
@@ -65,12 +74,6 @@ function isPlain(val: any) {
 
 function isSerializable(obj: any, transfers: Transferable[] = []) {
   if (transfers.includes(obj)) {
-    return true;
-  }
-  if (
-    ArrayBuffer.isView(obj) ||
-    Object.prototype.toString.call(obj) === "[object ArrayBuffer]"
-  ) {
     return true;
   }
   if (!isPlain(obj)) {
