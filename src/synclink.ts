@@ -52,7 +52,7 @@ transferHandlers.set("headers", {
   serialize(value: Headers): [[string, string][], Transferable[]] {
     return [Array.from(value as any), []];
   },
-  deserialize(value: [string,string][]): Headers {
+  deserialize(value: [string, string][]): Headers {
     return new Headers(value);
   },
 });
