@@ -49,10 +49,10 @@ transferHandlers.set("headers", {
   canHandle(value: unknown): value is Headers {
     return Object.prototype.toString.call(value) === "[object Headers]";
   },
-  serialize(value: Headers): [string[][], Transferable[]] {
+  serialize(value: Headers): [[string, string][], Transferable[]] {
     return [Array.from(value as any), []];
   },
-  deserialize(value: string[][]): Headers {
+  deserialize(value: [string,string][]): Headers {
     return new Headers(value);
   },
 });

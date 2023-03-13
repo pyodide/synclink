@@ -175,6 +175,7 @@ export type Local<T> =
 function innerMessageHandler(obj_arg: any, ep: Endpoint, message: Message) {
   const { id, path, store_key } = {
     path: [] as string[],
+    store_key: undefined,
     ...message,
   };
   let obj;
@@ -487,7 +488,7 @@ export interface ProxyMarked {
 }
 
 export function proxy<T>(obj: T): T & ProxyMarked {
-  return Object.assign(obj, { [proxyMarker]: true }) as any;
+  return Object.assign(obj as any, { [proxyMarker]: true }) as any;
 }
 
 /**
