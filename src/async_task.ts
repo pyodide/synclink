@@ -257,7 +257,7 @@ function innerMessageHandler(obj_arg: any, ep: Endpoint, message: Message) {
   }
 }
 
-export function expose(obj_arg: any, ep: Endpoint = self as any) {
+export function expose(obj_arg: any, ep: Endpoint = globalThis as any) {
   storeCreate(ep);
   ep.addEventListener("message", async function callback(ev: MessageEvent) {
     if (!ev || !ev.data) {
