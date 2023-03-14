@@ -578,7 +578,7 @@ describe("Synclink in the same realm", function () {
     Synclink.expose(SampleClass, this.port2);
     const instance = await new thing();
     await instance[Synclink.releaseProxy]();
-    expect(async () => await instance.method()).to.throw();
+    expect(() => instance.method()).to.throw();
   });
 
   it("can proxy with a given target", async function () {
