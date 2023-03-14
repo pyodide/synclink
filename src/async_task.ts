@@ -325,7 +325,7 @@ export function createProxy<T>(
           return "SynclinkProxy";
         case releaseProxy:
           return () => {
-            new SynclinkTask(
+            return new SynclinkTask(
               ep,
               {
                 type: MessageType.RELEASE,
