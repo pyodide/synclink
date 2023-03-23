@@ -298,7 +298,7 @@ function closeEndPoint(endpoint: Endpoint) {
 }
 
 export function wrap<T>(ep: Endpoint, target?: any): Remote<T> {
-  return createProxy<T>(ep, undefined, [], target) as any;
+  return createProxy<T>(ep, { target }) as any;
 }
 
 function throwIfProxyReleased(isReleased: boolean) {
@@ -309,10 +309,15 @@ function throwIfProxyReleased(isReleased: boolean) {
 
 export function createProxy<T>(
   ep: Endpoint,
-  store_key?: StoreKey,
-  path: (string | number | symbol)[] = [],
-  target: object = function () {},
-  keys = [],
+  {
+    store_key = undefined,
+    path = [],
+    target = function () {},
+  }: {
+    store_key?: StoreKey;
+    path?: (string | number | symbol)[];
+    target?: object;
+  },
 ): Remote<T> {
   let isProxyReleased = false;
   const proxy = new Proxy(target, {
@@ -377,7 +382,7 @@ export function createProxy<T>(
           });
           return r[prop].bind(r);
         default:
-          return createProxy(ep, store_key, [...path, prop]);
+          return createProxy(ep, { store_key, path: [...path, prop] });
       }
     },
     set(_target, prop, rawValue) {
@@ -406,7 +411,7 @@ export function createProxy<T>(
       }
       // We just pretend that `bind()` didn’t happen.
       if (last === "bind") {
-        return createProxy(ep, store_key, path.slice(0, -1));
+        return createProxy(ep, { store_key, path: path.slice(0, -1) });
       }
       if (last === "apply") {
         // temporary hack...
@@ -446,7 +451,7 @@ export function createProxy<T>(
       ).then((v) => fromWireValue(ep, v));
     },
     ownKeys(_target) {
-      return keys;
+      return [];
     },
   });
   return proxy as any;
