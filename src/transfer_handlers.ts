@@ -50,7 +50,6 @@ export const transferHandlers = new Map<
   TransferHandler<unknown, unknown>
 >();
 
-
 function isArrayBufferOrView(obj: any): boolean {
   return (
     ArrayBuffer.isView(obj) ||
@@ -205,7 +204,7 @@ export function fromWireValue(ep: Endpoint, value: WireValue): any {
       if (this_uuid === value.endpoint_uuid) {
         return storeGetValue(ep, value.store_key);
       } else {
-        return createProxy(ep, {store_key: value.store_key});
+        return createProxy(ep, { store_key: value.store_key });
       }
   }
 }
