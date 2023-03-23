@@ -205,7 +205,7 @@ export function fromWireValue(ep: Endpoint, value: WireValue): any {
       if (this_uuid === value.endpoint_uuid) {
         return storeGetValue(ep, value.store_key);
       } else {
-        return createProxy(ep, value.store_key, []);
+        return createProxy(ep, {store_key: value.store_key});
       }
   }
 }

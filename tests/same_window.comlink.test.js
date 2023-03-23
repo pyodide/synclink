@@ -74,7 +74,7 @@ describe("Synclink in the same realm", function () {
     this.port2 = port2;
   });
 
-  it("can work with objects", async function () {
+  it("can work with objects", async function () { 
     const thing = Synclink.wrap(this.port1);
     Synclink.expose({ value: 4 }, this.port2);
     expect(await thing.value).to.equal(4);
