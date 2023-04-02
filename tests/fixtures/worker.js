@@ -11,6 +11,6 @@
  * limitations under the License.
  */
 
-importScripts("/base/dist/umd/synclink.js");
+importScripts("/base/dist/iife/synclink.js");
 
 Synclink.expose((a, b) => a + b);

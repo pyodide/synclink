@@ -7,7 +7,8 @@
   "types": "dist/umd/synclink.d.ts",
   "sideEffects": false,
   "scripts": {
-    "build": "rollup -c",
+    "build": "npm run tsc && node esbuild.mjs",
+    "tsc": "tsc --noEmit",
     "test:unit": "karma start",
     "test:types": "tsc -p ./tests/tsconfig.json",
     "test:types:watch": "npm run test:types -- --watch",
@@ -31,6 +32,7 @@
   "devDependencies": {
     "chai": "4.2.0",
     "conditional-type-checks": "1.0.5",
+    "esbuild": "^0.17.15",
     "husky": "4.2.5",
     "karma": "^5.0.9",
     "karma-chai": "0.1.0",
@@ -44,9 +46,6 @@
     "mocha": "^7.2.0",
     "prettier": "2.0.5",
     "rimraf": "3.0.2",
-    "rollup": "^2.11.2",
-    "rollup-plugin-terser": "^6.1.0",
-    "rollup-plugin-typescript2": "^0.27.1",
     "typescript": "4.8"
   }
 }
