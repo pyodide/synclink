@@ -19,9 +19,6 @@ export {
   transfer,
 } from "./transfer_handlers";
 export {
-  proxyMarker,
-  ProxyMarked,
-  proxy,
   createEndpoint,
   releaseProxy,
   expose,
@@ -38,9 +35,14 @@ export {
 
 export { interrupt_buffer, setInterruptHandler, Syncifier } from "./task";
 
-import { proxyTransferHandler } from "./async_task";
-
-import { transferHandlers, throwTransferHandler } from "./transfer_handlers";
+import {
+  transferHandlers,
+  throwTransferHandler,
+  proxyTransferHandler,
+  proxyMarker,
+  ProxyMarked,
+  proxy,
+} from "./transfer_handlers";
 
 transferHandlers.set("throw", throwTransferHandler);
 transferHandlers.set("proxy", proxyTransferHandler);

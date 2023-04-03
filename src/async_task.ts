@@ -500,34 +500,3 @@ export function windowEndpoint(
     removeEventListener: context.removeEventListener.bind(context),
   };
 }
-
-export const proxyMarker = Symbol("Synclink.proxy");
-
-/**
- * Interface of values that were marked to be proxied with `synclink.proxy()`.
- * Can also be implemented by classes.
- */
-export interface ProxyMarked {
-  [proxyMarker]: true;
-}
-
-export function proxy<T>(obj: T): T & ProxyMarked {
-  return Object.assign(obj as any, { [proxyMarker]: true }) as any;
-}
-
-/**
- * Internal transfer handle to handle objects marked to proxy.
- */
-export const proxyTransferHandler: TransferHandler<object, MessagePort> = {
-  canHandle: (val): val is ProxyMarked =>
-    isObject(val) && (val as ProxyMarked)[proxyMarker],
-  serialize(obj) {
-    const { port1, port2 } = new MessageChannel();
-    expose(obj, port1);
-    return [port2, [port2]];
-  },
-  deserialize(port) {
-    port.start();
-    return wrap(port);
-  },
-};

@@ -1,6 +1,6 @@
 import { Endpoint, WireValue, WireValueType, StoreKey } from "./protocol";
 import { generateUUID } from "./request_response";
-import { createProxy } from "./async_task";
+import { createProxy, expose, wrap } from "./async_task";
 
 export const throwMarker = Symbol("Synclink.thrown");
 
@@ -245,3 +245,34 @@ export function storeDeleteKey(obj: any, key: StoreKey): any {
   objects.delete(key);
   console.log("deleted", key, objects);
 }
+
+export const proxyMarker = Symbol("Synclink.proxy");
+
+/**
+ * Interface of values that were marked to be proxied with `synclink.proxy()`.
+ * Can also be implemented by classes.
+ */
+export interface ProxyMarked {
+  [proxyMarker]: true;
+}
+
+export function proxy<T>(obj: T): T & ProxyMarked {
+  return Object.assign(obj as any, { [proxyMarker]: true }) as any;
+}
+
+/**
+ * Internal transfer handle to handle objects marked to proxy.
+ */
+export const proxyTransferHandler: TransferHandler<object, MessagePort> = {
+  canHandle: (val): val is ProxyMarked =>
+    isObject(val) && (val as ProxyMarked)[proxyMarker],
+  serialize(obj) {
+    const { port1, port2 } = new MessageChannel();
+    expose(obj, port1);
+    return [port2, [port2]];
+  },
+  deserialize(port) {
+    port.start();
+    return wrap(port);
+  },
+};
