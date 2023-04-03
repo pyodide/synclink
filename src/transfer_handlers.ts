@@ -159,6 +159,8 @@ export function toWireValue(
       [],
     ];
   }
+  if (isObject(value) && (value as ProxyMarked)[proxyMarker]) {
+  }
   for (const [name, handler] of transferHandlers) {
     if (handler.canHandle(value)) {
       const [serializedValue, transferables] = handler.serialize(value);

@@ -375,12 +375,15 @@ class _Syncifier {
   }
 
   syncifyTask(task: SynclinkTask) {
+    let i = 0;
     while (true) {
-      this.waitOnSignalBuffer();
-      // console.log("syncifyTask:: woke");
       if (this.pollTasks(task)) {
         return;
       }
+      if (task.endpoint._bypass) {
+        throw new Error("oops!");
+      }
+      this.waitOnSignalBuffer();
     }
   }
 }

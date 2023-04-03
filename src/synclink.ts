@@ -40,6 +40,7 @@ import {
   throwTransferHandler,
   proxyTransferHandler,
 } from "./transfer_handlers";
+export { FakeMessageChannel } from "./fake_message_channel";
 
 export { proxyMarker, ProxyMarked, proxy } from "./transfer_handlers";
 

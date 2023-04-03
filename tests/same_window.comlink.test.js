@@ -68,10 +68,31 @@ class SampleClass {
 describe("Synclink in the same realm", function () {
   beforeEach(function () {
     const { port1, port2 } = new MessageChannel();
+    ({ port1: this.fake_port1, port2: this.fake_port2 } =
+      new Synclink.FakeMessageChannel());
     port1.start();
     port2.start();
     this.port1 = port1;
     this.port2 = port2;
+  });
+
+  it("can work with objects + syncify in same thread", async function () {
+    const thing = Synclink.wrap(this.fake_port1);
+    Synclink.expose({ value: 4 }, this.fake_port2);
+    expect(thing.value.syncify()).to.equal(4);
+  });
+
+  it("Can work with stdio + syncify in same thread", async function () {
+    const remoteInterpreter = {
+      callbackFunc(callback) {
+        callback(10).syncify();
+      },
+    };
+    const thing = Synclink.wrap(this.fake_port1);
+    Synclink.expose(remoteInterpreter, this.fake_port2);
+    let value;
+    await thing.callbackFunc((v) => (value = v));
+    expect(value).to.equal(10);
   });
 
   it("can work with objects", async function () {

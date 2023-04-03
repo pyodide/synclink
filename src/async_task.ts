@@ -276,17 +276,21 @@ function exposeInner(
     if (wrap && store_key === undefined) {
       return;
     }
+    const sync = ev.data.syncify;
     let returnValue;
     try {
       returnValue = innerMessageHandler(obj_arg, ep, message);
       if (returnValue && returnValue.then) {
+        if (sync && ep._bypass) {
+          throw new Error("Cannot use syncify with bypass on an async method");
+        }
         returnValue = await returnValue;
       }
     } catch (value) {
       returnValue = { value, [throwMarker]: 0 };
     }
     const [wireValue, transferables] = toWireValue(ep, returnValue);
-    if (ev.data.syncify) {
+    if (sync) {
       syncResponse(ep, ev.data, wireValue);
     } else {
       ep.postMessage({ ...wireValue, id }, transferables);
@@ -390,11 +394,16 @@ export function createProxy<T>(
           if (path.length === 0 && prop === "then") {
             return { then: () => proxy };
           }
-          let r = new SynclinkTask(ep, {
-            type: MessageType.GET,
-            store_key,
-            path: path.map((p) => p.toString()),
-          });
+          let r = new SynclinkTask(
+            ep,
+            {
+              type: MessageType.GET,
+              store_key,
+              path: path.map((p) => p.toString()),
+            },
+            [],
+            undefined,
+          );
           return r[prop].bind(r);
         default:
           return createProxy(ep, { store_key, path: [...path, prop] });
@@ -446,6 +455,7 @@ export function createProxy<T>(
           argumentList,
         },
         transferables,
+        undefined,
       );
     },
     construct(_target, rawArgumentList) {
