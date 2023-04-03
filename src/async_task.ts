@@ -184,6 +184,9 @@ function innerMessageHandler(obj_arg: any, ep: Endpoint, message: Message) {
   } else {
     obj = obj_arg;
   }
+  if (obj_arg === undefined && store_key === undefined) {
+    throw new Error("Internal synclink error!");
+  }
   const argumentList = ((message as any).argumentList || []).map((v: any) => {
     if (v.type === WireValueType.PROXY) {
       return innerMessageHandler(obj_arg, ep, v.message);
@@ -258,17 +261,31 @@ function innerMessageHandler(obj_arg: any, ep: Endpoint, message: Message) {
 }
 
 export function expose(obj_arg: any, ep: Endpoint = globalThis as any) {
+  const wrap = false;
+  exposeInner(obj_arg, ep, wrap);
+}
+
+function exposeInner(
+  obj_arg: any,
+  ep: Endpoint = globalThis as any,
+  wrap: boolean,
+) {
   storeCreate(ep);
   ep.addEventListener("message", async function callback(ev: MessageEvent) {
     if (!ev || !ev.data) {
       return;
     }
     const message = ev.data as Message;
-    const { id, type } = { ...message };
-
+    const { id, type, store_key } = { store_key: undefined, ...message };
+    if (wrap && store_key === undefined) {
+      return;
+    }
     let returnValue;
     try {
-      returnValue = await innerMessageHandler(obj_arg, ep, message);
+      returnValue = innerMessageHandler(obj_arg, ep, message);
+      if (returnValue && returnValue.then) {
+        returnValue = await returnValue;
+      }
     } catch (value) {
       returnValue = { value, [throwMarker]: 0 };
     }
@@ -298,6 +315,8 @@ function closeEndPoint(endpoint: Endpoint) {
 }
 
 export function wrap<T>(ep: Endpoint, target?: any): Remote<T> {
+  const wrap = true;
+  exposeInner(undefined, ep, wrap);
   return createProxy<T>(ep, { target }) as any;
 }
 

@@ -1,5 +1,9 @@
 importScripts("/base/dist/iife/synclink.js");
 
+function usesCallback(callback) {
+  return callback(10).syncify();
+}
+
 async function get_from_main_window(x) {
   return await self.main_window[x];
 }
@@ -62,6 +66,7 @@ function set_global_scope(window) {
 }
 
 Synclink.expose({
+  usesCallback,
   get_from_main_window,
   set_global_scope,
   mainWindowFetchAsync,
