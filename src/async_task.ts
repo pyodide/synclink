@@ -11,22 +11,18 @@ import {
 
 import { requestResponseMessage } from "./request_response";
 
+import { proxyMarker, ProxyMarked, proxy } from "./transfer_handlers";
 import {
   fromWireValue,
   toWireValue,
   transfer,
   throwMarker,
-  isObject,
-  TransferHandler,
   storeCreate,
   storeGetValue,
-  storeNewValue,
   storeDeleteKey,
 } from "./transfer_handlers";
 
 import { SynclinkTask, syncResponse } from "./task";
-
-// import { syncRequest, syncResponse } from "./synclink";
 
 export const createEndpoint = Symbol("Synclink.endpoint");
 export const releaseProxy = Symbol("Synclink.releaseProxy");

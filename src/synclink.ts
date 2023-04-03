@@ -39,10 +39,9 @@ import {
   transferHandlers,
   throwTransferHandler,
   proxyTransferHandler,
-  proxyMarker,
-  ProxyMarked,
-  proxy,
 } from "./transfer_handlers";
+
+export { proxyMarker, ProxyMarked, proxy } from "./transfer_handlers";
 
 transferHandlers.set("throw", throwTransferHandler);
 transferHandlers.set("proxy", proxyTransferHandler);
