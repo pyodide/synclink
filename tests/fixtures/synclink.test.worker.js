@@ -1,4 +1,5 @@
-importScripts("/base/dist/umd/synclink.js");
+importScripts("/base/dist/iife/synclink.js");
+
 async function get_from_main_window(x) {
   return await self.main_window[x];
 }
