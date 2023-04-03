@@ -160,8 +160,6 @@ export function toWireValue(
       [],
     ];
   }
-  if (isObject(value) && (value as ProxyMarked)[proxyMarker]) {
-  }
   if (ep._bypass) {
     proxyFakeMessagePort = true;
   }

@@ -375,7 +375,6 @@ class _Syncifier {
   }
 
   syncifyTask(task: SynclinkTask) {
-    let i = 0;
     while (true) {
       if (this.pollTasks(task)) {
         return;
