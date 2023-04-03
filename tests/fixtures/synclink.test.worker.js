@@ -1,6 +1,5 @@
 importScripts("/base/dist/iife/synclink.js");
 
-
 function usesCallback(callback) {
   return callback(10).syncify();
 }

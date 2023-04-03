@@ -18,7 +18,7 @@ describe("test syncify", function () {
     this.worker.terminate();
   });
 
-  it("test syncify callback", async function() {
+  it("test syncify callback", async function () {
     let value;
     let result = await this.worker.usesCallback((x) => {
       value = x;
@@ -27,7 +27,6 @@ describe("test syncify", function () {
     expect(value).to.equal(10);
     expect(result).to.equal(10 + 12);
   });
-
 
   it("test proxying fetch to main window", async function () {
     const ttt = 999;
@@ -42,7 +41,9 @@ describe("test syncify", function () {
   });
 
   it("simple schedule sync test", async function () {
-    expect(await this.worker.fetchResponseAttrsWithSyncify("debug.html")).to.equal(
+    expect(
+      await this.worker.fetchResponseAttrsWithSyncify("debug.html"),
+    ).to.equal(
       JSON.stringify({
         type: "basic",
         redirected: false,
