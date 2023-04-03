@@ -1,6 +1,7 @@
 import { Endpoint, WireValue, WireValueType, StoreKey } from "./protocol";
 import { generateUUID } from "./request_response";
 import { createProxy, expose, wrap } from "./async_task";
+import { FakeMessageChannel } from "./fake_message_channel";
 
 export const throwMarker = Symbol("Synclink.thrown");
 
@@ -161,18 +162,25 @@ export function toWireValue(
   }
   if (isObject(value) && (value as ProxyMarked)[proxyMarker]) {
   }
-  for (const [name, handler] of transferHandlers) {
-    if (handler.canHandle(value)) {
-      const [serializedValue, transferables] = handler.serialize(value);
-      return [
-        {
-          type: WireValueType.HANDLER,
-          name,
-          value: serializedValue,
-        },
-        transferables,
-      ];
+  if (ep._bypass) {
+    proxyFakeMessagePort = true;
+  }
+  try {
+    for (const [name, handler] of transferHandlers) {
+      if (handler.canHandle(value)) {
+        const [serializedValue, transferables] = handler.serialize(value);
+        return [
+          {
+            type: WireValueType.HANDLER,
+            name,
+            value: serializedValue,
+          },
+          transferables,
+        ];
+      }
     }
+  } finally {
+    proxyFakeMessagePort = false;
   }
   if (isSerializable(value, transferCache.get(value))) {
     return [
@@ -262,6 +270,8 @@ export function proxy<T>(obj: T): T & ProxyMarked {
   return Object.assign(obj as any, { [proxyMarker]: true }) as any;
 }
 
+let proxyFakeMessagePort = false;
+
 /**
  * Internal transfer handle to handle objects marked to proxy.
  */
@@ -269,7 +279,9 @@ export const proxyTransferHandler: TransferHandler<object, MessagePort> = {
   canHandle: (val): val is ProxyMarked =>
     isObject(val) && (val as ProxyMarked)[proxyMarker],
   serialize(obj) {
-    const { port1, port2 } = new MessageChannel();
+    const { port1, port2 } = (
+      proxyFakeMessagePort ? new FakeMessageChannel() : new MessageChannel()
+    ) as MessageChannel;
     expose(obj, port1);
     return [port2, [port2]];
   },

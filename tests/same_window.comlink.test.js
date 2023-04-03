@@ -78,11 +78,20 @@ describe("Synclink in the same realm", function () {
 
   it("can work with objects + syncify in same thread", async function () {
     const thing = Synclink.wrap(this.fake_port1);
-    Synclink.expose({ value: 4 }, this.fake_port2);
+    Synclink.expose(
+      {
+        value: 4,
+        func(n) {
+          return n + 10;
+        },
+      },
+      this.fake_port2,
+    );
     expect(thing.value.syncify()).to.equal(4);
+    expect(thing.func(5).syncify()).to.equal(15);
   });
 
-  it("Can work with stdio + syncify in same thread", async function () {
+  it("Can work with callback + syncify in same thread", async function () {
     const remoteInterpreter = {
       callbackFunc(callback) {
         callback(10).syncify();
@@ -92,6 +101,9 @@ describe("Synclink in the same realm", function () {
     Synclink.expose(remoteInterpreter, this.fake_port2);
     let value;
     await thing.callbackFunc((v) => (value = v));
+    expect(value).to.equal(10);
+    value = undefined;
+    await thing.callbackFunc(Synclink.proxy((v) => (value = v)));
     expect(value).to.equal(10);
   });
 

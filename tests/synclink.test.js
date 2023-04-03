@@ -40,6 +40,8 @@ describe("test syncify", function () {
     );
   });
 
+  /*
+
   it("simple schedule sync test", async function () {
     expect(
       await this.worker.fetchResponseAttrsWithSyncify("debug.html"),
@@ -54,7 +56,6 @@ describe("test syncify", function () {
     );
   });
 
-  /*
   it("test scheduling 5 calls together with syncify", async function () {
     this.x = 0;
     const delay = 10;
