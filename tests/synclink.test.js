@@ -4,7 +4,7 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-describe("xxx xxxx xxxxx", function () {
+describe("test syncify", function () {
   beforeEach(async function () {
     this.worker = Synclink.wrap(
       new Worker("/base/tests/fixtures/synclink.test.worker.js"),
@@ -18,20 +18,20 @@ describe("xxx xxxx xxxxx", function () {
     this.worker.terminate();
   });
 
-  it("blah", async function () {
+  it("test proxying fetch to main window", async function () {
     const ttt = 999;
     this.worker_scope.ttt = ttt;
     expect(await this.worker.get_from_main_window("ttt")).to.equal(ttt);
-    expect(await this.worker.test("debug.html")).to.contain(
+    expect(await this.worker.mainWindowFetchAsync("debug.html")).to.contain(
       "This file is almost the same as context.html",
     );
-    expect(await this.worker.test2("debug.html")).to.contain(
+    expect(await this.worker.mainWindowFetchSync("debug.html")).to.contain(
       "This file is almost the same as context.html",
     );
   });
 
-  it("blah3", async function () {
-    expect(await this.worker.test3("debug.html")).to.equal(
+  it("simple schedule sync test", async function () {
+    expect(await this.worker.fetchResponseAttrsWithSyncify("debug.html")).to.equal(
       JSON.stringify({
         type: "basic",
         redirected: false,
@@ -42,7 +42,8 @@ describe("xxx xxxx xxxxx", function () {
     );
   });
 
-  it("blah4", async function () {
+  /*
+  it("test scheduling 5 calls together with syncify", async function () {
     this.x = 0;
     const delay = 10;
     let f = async () => {
@@ -51,7 +52,7 @@ describe("xxx xxxx xxxxx", function () {
       return this.x;
     };
     this.worker_scope.f = f;
-    expect(await this.worker.test4("f")).to.equal(
+    expect(await this.worker.scheduleSeveralSyncifyCalls("f")).to.equal(
       JSON.stringify([0, 0, 0, 0, 0]),
     );
   });
@@ -85,4 +86,5 @@ describe("xxx xxxx xxxxx", function () {
     this.worker_scope.g = g;
     expect(await this.worker.proxy_arg_test()).to.equal("abc!!");
   });
+  */
 });

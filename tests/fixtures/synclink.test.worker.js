@@ -4,19 +4,19 @@ async function get_from_main_window(x) {
   return await self.main_window[x];
 }
 
-async function test(x) {
+async function mainWindowFetchAsync(x) {
   let resp = await self.main_window.fetch(x);
   console.log(resp);
   let value = await resp.text();
   return value;
 }
 
-function test2(x) {
+function mainWindowFetchSync(x) {
   let resp = self.main_window.fetch(x).syncify();
   let value = resp.text().syncify();
   return value;
 }
-function test3(x) {
+function fetchResponseAttrsWithSyncify(x) {
   const resp = self.main_window.fetch(x).syncify();
   const scheduled = {};
   const keys = ["type", "redirected", "status", "ok", "statusText"];
@@ -30,7 +30,7 @@ function test3(x) {
   return JSON.stringify(results);
 }
 
-function test4(name) {
+function scheduleSeveralSyncifyCalls(name) {
   const tasks = [];
   for (let i = 0; i < 5; i++) {
     console.log("i", i);
@@ -64,10 +64,10 @@ function set_global_scope(window) {
 Synclink.expose({
   get_from_main_window,
   set_global_scope,
-  test,
-  test2,
-  test3,
-  test4,
+  mainWindowFetchAsync,
+  mainWindowFetchSync,
+  fetchResponseAttrsWithSyncify,
+  scheduleSeveralSyncifyCalls,
   test5,
   proxy_arg_test,
 });
