@@ -18,6 +18,17 @@ describe("test syncify", function () {
     this.worker.terminate();
   });
 
+  it("test syncify callback", async function() {
+    let value;
+    let result = await this.worker.usesCallback((x) => {
+      value = x;
+      return x + 12;
+    });
+    expect(value).to.equal(10);
+    expect(result).to.equal(10 + 12);
+  });
+
+
   it("test proxying fetch to main window", async function () {
     const ttt = 999;
     this.worker_scope.ttt = ttt;
