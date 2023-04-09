@@ -1,6 +1,9 @@
+import type { SynclinkTask } from "./task";
+
 export const createEndpoint = Symbol("Synclink.endpoint");
 export const releaseProxy = Symbol("Synclink.releaseProxy");
 export const proxyMarker = Symbol("Synclink.proxy");
+
 
 /**
  * Interface of values that were marked to be proxied with `synclink.proxy()`.
@@ -35,7 +38,7 @@ type RemoteProperty<T> =
   // If the value is a method, synclink will proxy it automatically.
   // Objects are only proxied if they are marked to be proxied.
   // Otherwise, the property is converted to a Promise that resolves the cloned value.
-  T extends Function | ProxyMarked ? Remote<T> : Promisify<T>;
+  T extends Function | ProxyMarked ? Remote<T> : SynclinkTask<T>;
 
 /**
  * Takes the raw type of a property as a remote thread would see it through a proxy (e.g. when passed in as a function
@@ -46,9 +49,7 @@ type RemoteProperty<T> =
  * Note: This needs to be its own type alias, otherwise it will not distribute over unions. See
  * https://www.typescriptlang.org/docs/handbook/advanced-types.html#distributive-conditional-types
  */
-type LocalProperty<T> = T extends Function | ProxyMarked
-  ? Local<T>
-  : Unpromisify<T>;
+type LocalProperty<T> = T extends Function | ProxyMarked ? Local<T> : UnTask<T>;
 
 /**
  * Proxies `T` if it is a `ProxyMarked`, clones it otherwise (as handled by structured cloning and transfer handlers).
@@ -87,8 +88,11 @@ export type LocalObject<T> = { [P in keyof T]: LocalProperty<T[P]> };
  */
 export interface ProxyMethods {
   [createEndpoint]: () => Promise<MessagePort>;
-  [releaseProxy]: () => void;
+  [releaseProxy]: () => SynclinkTask<void>;
 }
+
+type UnTask<T> = T extends SynclinkTask<infer S> ? S : T;
+type MaybePromise<T> = Promise<T> | T;
 
 /**
  * Takes the raw type of a remote object, function or class in the other thread and returns the type as it is visible to
@@ -101,7 +105,7 @@ export type Remote<T> =
     (T extends (...args: infer TArguments) => infer TReturn
       ? (
           ...args: { [I in keyof TArguments]: UnproxyOrClone<TArguments[I]> }
-        ) => Promisify<ProxyOrClone<Unpromisify<TReturn>>>
+        ) => SynclinkTask<ProxyOrClone<Unpromisify<TReturn>>>
       : unknown) &
     // Handle construct signature (if present)
     // The return of construct signatures is always proxied (whether marked or not)
@@ -111,16 +115,11 @@ export type Remote<T> =
             ...args: {
               [I in keyof TArguments]: UnproxyOrClone<TArguments[I]>;
             }
-          ): Promisify<Remote<TInstance>>;
+          ): SynclinkTask<Remote<TInstance>>;
         }
       : unknown) &
     // Include additional special synclink methods available on the proxy.
     ProxyMethods;
-
-/**
- * Expresses that a type can be either a sync or async.
- */
-type MaybePromise<T> = Promise<T> | T;
 
 /**
  * Takes the raw type of a remote object, function or class as a remote thread would see it through a proxy (e.g. when
@@ -136,7 +135,7 @@ export type Local<T> =
       ? (
           ...args: { [I in keyof TArguments]: ProxyOrClone<TArguments[I]> }
         ) => // The raw function could either be sync or async, but is always proxied automatically
-        MaybePromise<UnproxyOrClone<Unpromisify<TReturn>>>
+        MaybePromise<UnproxyOrClone<UnTask<TReturn>>>
       : unknown) &
     // Handle construct signature (if present)
     // The return of construct signatures is always proxied (whether marked or not)
@@ -147,6 +146,6 @@ export type Local<T> =
               [I in keyof TArguments]: ProxyOrClone<TArguments[I]>;
             }
           ): // The raw constructor could either be sync or async, but is always proxied automatically
-          MaybePromise<Local<Unpromisify<TInstance>>>;
+          MaybePromise<Local<UnTask<TInstance>>>;
         }
       : unknown);

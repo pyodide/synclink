@@ -1,6 +1,7 @@
 import { assert, Has, NotHas, IsAny, IsExact } from "conditional-type-checks";
 
 import * as Synclink from "../src/synclink.js";
+import { SynclinkTask } from "../src/task.js";
 
 async function closureSoICanUseAwait() {
   {
@@ -11,7 +12,7 @@ async function closureSoICanUseAwait() {
     const proxy = Synclink.wrap<typeof simpleNumberFunction>(0 as any);
     assert<IsAny<typeof proxy>>(false);
     const v = proxy();
-    assert<Has<typeof v, Promise<number>>>(true);
+    assert<Has<typeof v, SynclinkTask<number>>>(true);
   }
 
   {
@@ -42,7 +43,7 @@ async function closureSoICanUseAwait() {
     const proxy = Synclink.wrap<typeof functionWithProxy>(0 as any);
     const subproxy = await proxy();
     const prop = subproxy.a;
-    assert<Has<typeof prop, Promise<number>>>(true);
+    assert<Has<typeof prop, SynclinkTask<number>>>(true);
   }
 
   {
@@ -58,10 +59,10 @@ async function closureSoICanUseAwait() {
     }
 
     const proxy = Synclink.wrap<typeof X>(0 as any);
-    assert<Has<typeof proxy, { staticFunc: () => Promise<number> }>>(true);
+    assert<Has<typeof proxy, { staticFunc: () => SynclinkTask<number> }>>(true);
     const instance = await new proxy();
-    assert<Has<typeof instance, { sayHi: () => Promise<string> }>>(true);
-    assert<Has<typeof instance, { g: Promise<number> }>>(true);
+    assert<Has<typeof instance, { sayHi: () => SynclinkTask<string> }>>(true);
+    assert<Has<typeof instance, { g: SynclinkTask<number> }>>(true);
     assert<NotHas<typeof instance, { f: Promise<number> }>>(true);
     assert<IsAny<typeof instance>>(false);
   }
@@ -80,13 +81,13 @@ async function closureSoICanUseAwait() {
     const proxy = Synclink.wrap<typeof x>(0 as any);
     assert<IsAny<typeof proxy>>(false);
     const a = proxy.a;
-    assert<Has<typeof a, Promise<number>>>(true);
+    assert<Has<typeof a, SynclinkTask<number>>>(true);
     assert<IsAny<typeof a>>(false);
     const b = proxy.b;
-    assert<Has<typeof b, () => Promise<number>>>(true);
+    assert<Has<typeof b, () => SynclinkTask<number>>>(true);
     assert<IsAny<typeof b>>(false);
     const subproxy = proxy.c;
-    assert<Has<typeof subproxy, Promise<{ d: number }>>>(true);
+    assert<Has<typeof subproxy, SynclinkTask<{ d: number }>>>(true);
     assert<IsAny<typeof subproxy>>(false);
     const copy = await proxy.c;
     assert<Has<typeof copy, { d: number }>>(true);
@@ -136,13 +137,13 @@ async function closureSoICanUseAwait() {
     assert<IsExact<typeof endp, Promise<MessagePort>>>(true);
 
     assert<IsAny<typeof proxy.prop1>>(false);
-    assert<Has<typeof proxy.prop1, Promise<string>>>(true);
+    assert<Has<typeof proxy.prop1, SynclinkTask<string>>>(true);
 
     const r1 = proxy.methodWithTupleParams(123, "abc");
-    assert<IsExact<typeof r1, Promise<number>>>(true);
+    assert<IsExact<typeof r1, SynclinkTask<number>>>(true);
 
     const r2 = proxy.methodWithTupleParams("abc");
-    assert<IsExact<typeof r2, Promise<number>>>(true);
+    assert<IsExact<typeof r2, SynclinkTask<number>>>(true);
 
     assert<
       IsExact<
@@ -152,12 +153,12 @@ async function closureSoICanUseAwait() {
     >(true);
 
     assert<IsAny<typeof proxy.proxyProp.prop2>>(false);
-    assert<Has<typeof proxy.proxyProp.prop2, Promise<string>>>(true);
-    assert<Has<typeof proxy.proxyProp.prop2, Promise<number>>>(true);
+    assert<Has<typeof proxy.proxyProp.prop2, SynclinkTask<string>>>(true);
+    assert<Has<typeof proxy.proxyProp.prop2, SynclinkTask<number>>>(true);
 
     const r3 = proxy.proxyProp.method("param");
     assert<IsAny<typeof r3>>(false);
-    assert<Has<typeof r3, Promise<number>>>(true);
+    assert<Has<typeof r3, SynclinkTask<number>>>(true);
 
     // @ts-expect-error
     proxy.proxyProp.method(123);
@@ -168,21 +169,27 @@ async function closureSoICanUseAwait() {
     const r4 = proxy.methodWithProxiedReturnValue();
     assert<IsAny<typeof r4>>(false);
     assert<
-      IsExact<typeof r4, Promise<Synclink.Remote<Baz & Synclink.ProxyMarked>>>
+      IsExact<
+        typeof r4,
+        SynclinkTask<Synclink.Remote<Baz & Synclink.ProxyMarked>>
+      >
     >(true);
 
     const r5 = proxy.proxyProp.methodWithProxiedReturnValue();
     assert<
-      IsExact<typeof r5, Promise<Synclink.Remote<Baz & Synclink.ProxyMarked>>>
+      IsExact<
+        typeof r5,
+        SynclinkTask<Synclink.Remote<Baz & Synclink.ProxyMarked>>
+      >
     >(true);
 
     const r6 = (await proxy.methodWithProxiedReturnValue()).baz;
     assert<IsAny<typeof r6>>(false);
-    assert<Has<typeof r6, Promise<number>>>(true);
+    assert<Has<typeof r6, SynclinkTask<number>>>(true);
 
     const r7 = (await proxy.methodWithProxiedReturnValue()).method();
     assert<IsAny<typeof r7>>(false);
-    assert<Has<typeof r7, Promise<number>>>(true);
+    assert<Has<typeof r7, SynclinkTask<number>>>(true);
 
     const ProxiedFooClass = Synclink.wrap<typeof Foo>(
       Synclink.windowEndpoint(self),
@@ -250,7 +257,7 @@ async function closureSoICanUseAwait() {
         assert<
           IsExact<
             typeof resultPromise,
-            Promise<Synclink.Remote<ProxyableSubscribable<string>>>
+            SynclinkTask<Synclink.Remote<ProxyableSubscribable<string>>>
           >
         >(true);
         const result = await resultPromise;
@@ -264,7 +271,7 @@ async function closureSoICanUseAwait() {
         assert<
           IsExact<
             typeof subscriptionPromise,
-            Promise<Synclink.Remote<Unsubscribable & Synclink.ProxyMarked>>
+            SynclinkTask<Synclink.Remote<Unsubscribable & Synclink.ProxyMarked>>
           >
         >(true);
         const subscriber = Synclink.proxy({
@@ -273,7 +280,7 @@ async function closureSoICanUseAwait() {
         result.subscribe(subscriber);
 
         const r1 = (await subscriptionPromise).unsubscribe();
-        assert<IsExact<typeof r1, Promise<void>>>(true);
+        assert<IsExact<typeof r1, SynclinkTask<void>>>(true);
       }
     }
     const proxy2 = Synclink.wrap<Registry>(Synclink.windowEndpoint(self));
@@ -294,7 +301,10 @@ async function closureSoICanUseAwait() {
             assert<
               IsExact<
                 typeof subscriber.closed,
-                Promise<true> | Promise<false> | Promise<undefined> | undefined
+                | SynclinkTask<true>
+                | SynclinkTask<false>
+                | SynclinkTask<undefined>
+                | undefined
               >
             >(true);
 
@@ -303,7 +313,7 @@ async function closureSoICanUseAwait() {
               IsExact<
                 typeof subscriber.next,
                 | Synclink.Remote<(value: string) => void>
-                | Promise<undefined>
+                | SynclinkTask<undefined>
                 | undefined
               >
             >(true);
@@ -342,7 +352,7 @@ async function closureSoICanUseAwait() {
               IsExact<
                 typeof subscriber.next,
                 | Synclink.Remote<(value: string) => void>
-                | Promise<undefined>
+                | SynclinkTask<undefined>
                 | undefined
               >
             >(true);
