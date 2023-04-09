@@ -5,6 +5,12 @@
   "main": "dist/cjs/synclink.js",
   "module": "dist/esm/synclink.mjs",
   "types": "dist/types/synclink.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/cjs/synclink.js",
+      "import": "./dist/esm/synclink.mjs"
+    }
+  },
   "sideEffects": false,
   "scripts": {
     "build": "npm run rimraf && npm run tsc && node esbuild.mjs",
