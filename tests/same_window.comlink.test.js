@@ -443,6 +443,24 @@ describe("Synclink in the same realm", function () {
     expect(await obj.counter).to.equal(1);
   });
 
+  it("will wrap unmarked return values", async function () {
+    const thing = Synclink.wrap(this.port1);
+    Synclink.expose(
+      (_) => ({
+        counter: 0,
+        inc() {
+          this.counter += 1;
+        },
+      }),
+      this.port2,
+    );
+    const obj = await thing();
+    console.log(await obj.counter);
+    expect(await obj.counter).to.equal(0);
+    await obj.inc();
+    expect(await obj.counter).to.equal(1);
+  });
+
   it("will wrap marked return values from class instance methods", async function () {
     const thing = Synclink.wrap(this.port1);
     Synclink.expose(SampleClass, this.port2);

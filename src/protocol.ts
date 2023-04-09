@@ -47,6 +47,23 @@ export const enum WireValueType {
   ID = "ID",
 }
 
+// It's not possible to automatically generate a set of values from a const enum
+// https://github.com/microsoft/TypeScript/issues/21391
+
+// This dance allows us to hand write the value set in a type safe way -- if a
+// case is added to or removed from the enum without updating the value set,
+// it's a type error.
+const wireValueTypeRecord: Record<keyof typeof WireValueType, number> = {
+  [WireValueType.RAW]: 1,
+  [WireValueType.PROXY]: 1,
+  [WireValueType.THROW]: 1,
+  [WireValueType.HANDLER]: 1,
+  [WireValueType.ID]: 1,
+};
+export const wireValueTypeSet = new Set(
+  Object.keys(wireValueTypeRecord),
+) as Set<keyof typeof WireValueType>;
+
 export interface RawWireValue {
   id?: string;
   type: WireValueType.RAW;
@@ -93,6 +110,25 @@ export const enum MessageType {
   RELEASE = "RELEASE",
   DESTROY = "DESTROY",
 }
+
+// It's not possible to automatically generate a set of values from a const enum
+// https://github.com/microsoft/TypeScript/issues/21391
+
+// This dance allows us to hand write the value set in a type safe way -- if a
+// case is added to or removed from the enum without updating the value set,
+// it's a type error.
+const messageTypeRecord: Record<keyof typeof MessageType, number> = {
+  [MessageType.SET]: 1,
+  [MessageType.GET]: 1,
+  [MessageType.APPLY]: 1,
+  [MessageType.CONSTRUCT]: 1,
+  [MessageType.ENDPOINT]: 1,
+  [MessageType.RELEASE]: 1,
+  [MessageType.DESTROY]: 1,
+};
+export const messageTypeSet = new Set(Object.keys(messageTypeRecord)) as Set<
+  keyof typeof MessageType
+>;
 
 export interface GetMessage {
   id?: MessageID;
@@ -150,3 +186,9 @@ export type Message =
   | EndpointMessage
   | ReleaseMessage
   | DestroyMessage;
+
+type StaticAssert<T extends true> = T;
+type AreDisjoint<S, T> = S & T extends never ? true : false;
+type AssertMessageTypeAndWireTypeAreDisjoint = StaticAssert<
+  AreDisjoint<WireValueType, MessageType>
+>;
