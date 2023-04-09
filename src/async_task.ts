@@ -3,9 +3,11 @@ import {
   EventSource,
   Message,
   MessageType,
+  messageTypeSet,
   PostMessageWithOrigin,
   WireValue,
   WireValueType,
+  wireValueTypeSet,
   StoreKey,
 } from "./protocol";
 
@@ -181,6 +183,7 @@ function innerMessageHandler(obj_arg: any, ep: Endpoint, message: Message) {
     obj = obj_arg;
   }
   if (obj_arg === undefined && store_key === undefined) {
+    console.warn(obj_arg, message);
     throw new Error("Internal synclink error!");
   }
   const argumentList = ((message as any).argumentList || []).map((v: any) => {
@@ -271,9 +274,21 @@ function exposeInner(
     if (!ev || !ev.data) {
       return;
     }
+    if (!messageTypeSet.has(ev.data.type)) {
+      if (!wireValueTypeSet.has(ev.data.type) && !ev.data.data_buffer) {
+        console.warn("Internal error on message:", ev.data);
+        throw new Error(
+          `Synclink Internal error: Expected message.type to either be a MessageType or a WireValueType, got '${ev.data.type}'`,
+        );
+      }
+      // It was a response.
+      // TODO: assert that there is a requestResponseMessage waiting for this id?
+      return;
+    }
     const message = ev.data as Message;
     const { id, type, store_key } = { store_key: undefined, ...message };
     if (wrap && store_key === undefined) {
+      // TODO: What are these messages doing?
       return;
     }
     const sync = ev.data.syncify;
