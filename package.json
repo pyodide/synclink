@@ -7,8 +7,9 @@
   "types": "dist/types/synclink.d.ts",
   "sideEffects": false,
   "scripts": {
-    "build": "npm run tsc && node esbuild.mjs",
-    "tsc": "tsc",
+    "build": "npm run rimraf && npm run tsc && node esbuild.mjs",
+    "rimraf": "rimraf ./dist",
+    "tsc": "tsc --outDir ./dist/types",
     "test:unit": "karma start",
     "test:types": "tsc -p ./tests/tsconfig.json",
     "test:types:watch": "npm run test:types -- --watch",

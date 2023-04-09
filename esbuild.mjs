@@ -1,6 +1,4 @@
 import { build } from "esbuild";
-import rimraf from "rimraf";
-rimraf.sync("dist");
 
 function config({ format, minify, ext = "js" }) {
   const dir = `dist/${format}/`;
