@@ -10,7 +10,6 @@ export interface ProxyMarked {
   [proxyMarker]: true;
 }
 
-
 /**
  * Takes a type and wraps it in a Promise, if it not already is one.
  * This is to avoid `Promise<Promise<T>>`.

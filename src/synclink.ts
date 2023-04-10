@@ -29,15 +29,11 @@ export {
   Local,
   createEndpoint,
   releaseProxy,
-  proxyMarker, 
-  ProxyMarked
+  proxyMarker,
+  ProxyMarked,
 } from "./types";
 
-export {
-  expose,
-  wrap,
-  windowEndpoint,
-} from "./async_task";
+export { expose, wrap, windowEndpoint } from "./async_task";
 
 export { interrupt_buffer, setInterruptHandler, Syncifier } from "./task";
 

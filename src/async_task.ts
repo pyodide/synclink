@@ -13,7 +13,7 @@ import {
 
 import { requestResponseMessage } from "./request_response";
 
-import {createEndpoint, Remote, releaseProxy} from "./types";
+import { createEndpoint, Remote, releaseProxy } from "./types";
 import { proxy } from "./transfer_handlers";
 import {
   fromWireValue,
