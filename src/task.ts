@@ -21,13 +21,15 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+type ResolvedSynclinkTask<T> = SynclinkTask<T> & { _result: T };
+
 /**
  * This is a "syncifiable" promise. It consists of a task to be dispatched on
  * another thread. It can be dispatched asynchronously (the easy way) or
  * synchronously (the harder way). Either way, this promise does not start out
  * as scheduled, you
  */
-export class SynclinkTask {
+export class SynclinkTask<T> {
   endpoint: Endpoint;
   msg: Message;
   extra: () => void;
@@ -36,7 +38,7 @@ export class SynclinkTask {
   mode?: "sync" | "async";
 
   _resolved: boolean;
-  _result?: any;
+  _result?: T;
   _exception?: any;
 
   // Async only
@@ -46,7 +48,7 @@ export class SynclinkTask {
 
   // sync only
   taskId?: number;
-  _sync_gen?: Generator<void, any, void>;
+  _sync_gen?: Generator<undefined, any, undefined>;
   size_buffer?: Int32Array;
   signal_buffer?: Int32Array;
 
@@ -67,10 +69,10 @@ export class SynclinkTask {
     });
   }
 
-  schedule_async() {
+  schedule_async(): this {
     if (this.mode === "async") {
       // already scheduled
-      return;
+      return this;
     }
     if (this.mode === "sync") {
       throw new Error("Already synchronously scheduled");
@@ -91,28 +93,28 @@ export class SynclinkTask {
     return this;
   }
 
-  async then(
-    onfulfilled: (value: any) => any,
-    onrejected: (reason: any) => any,
-  ) {
+  async then<S>(
+    onfulfilled: (value: T) => S,
+    onrejected: (reason: any) => S,
+  ): Promise<S> {
     this.schedule_async();
     return this._promise.then(onfulfilled, onrejected);
   }
 
-  catch(onrejected: (reason: any) => any) {
+  catch<S>(onrejected: (reason: any) => S): Promise<S> {
     this.schedule_async();
     return this._promise.catch(onrejected);
   }
 
-  finally(onfinally: () => void) {
+  finally(onfinally: () => void): Promise<T> {
     this.schedule_async();
     return this._promise.finally(onfinally);
   }
 
-  schedule_sync() {
+  schedule_sync(): this {
     if (this.mode === "sync") {
       // already scheduled
-      return;
+      return this;
     }
     if (this.mode === "async") {
       throw new Error("Already asynchronously scheduled");
@@ -124,7 +126,11 @@ export class SynclinkTask {
     return this;
   }
 
-  poll() {
+  isResolved(): this is ResolvedSynclinkTask<T> {
+    return this._resolved;
+  }
+
+  poll(): boolean {
     if (this.mode != "sync") {
       throw new Error("Task not synchronously scheduled");
     }
@@ -142,7 +148,7 @@ export class SynclinkTask {
     return true;
   }
 
-  *do_sync() {
+  *do_sync(): Generator<undefined, string, undefined> {
     // just use syncRequest.
     let { endpoint, msg, transfers } = this;
     let size_buffer = new Int32Array(new SharedArrayBuffer(8));
@@ -179,7 +185,7 @@ export class SynclinkTask {
     return JSON.parse(decoder.decode(data_buffer.slice(0, size)));
   }
 
-  async do_async() {
+  async do_async(): Promise<T> {
     let result = await requestResponseMessage(
       this.endpoint,
       this.msg,
@@ -189,25 +195,27 @@ export class SynclinkTask {
     return fromWireValue(this.endpoint, result);
   }
 
-  get result() {
+  get result(): T {
     if (this._exception) {
       throw this._exception;
     }
-    // console.log(this._resolved);
-    if (this._resolved) {
+    if (this.isResolved()) {
       return this._result;
     }
     throw new Error("Not ready.");
   }
 
-  syncify(): any {
+  syncify(): T {
     this.schedule_sync();
     Syncifier.syncifyTask(this);
     return this.result;
   }
 }
 
-async function signalRequester(signal_buffer: Uint32Array, taskId: number) {
+async function signalRequester(
+  signal_buffer: Uint32Array,
+  taskId: number,
+): Promise<void> {
   let index = (taskId >> 1) % 32;
   let sleepTime = 1;
   while (Atomics.compareExchange(signal_buffer, index + 1, 0, taskId) !== 0) {
@@ -239,7 +247,7 @@ export async function syncResponse(
   endpoint: Endpoint,
   msg: any,
   returnValue: WireValue,
-) {
+): Promise<void> {
   try {
     let { size_buffer, data_buffer, signal_buffer, taskId } = msg;
     // console.warn(msg);
@@ -310,21 +318,21 @@ export function setInterruptHandler(handler: () => never) {
 class _Syncifier {
   nextTaskId: Int32Array;
   signal_buffer: Int32Array;
-  tasks: Map<number, SynclinkTask>;
+  tasks: Map<number, SynclinkTask<any>>;
   constructor() {
     this.nextTaskId = new Int32Array([1]);
     this.signal_buffer = new Int32Array(new SharedArrayBuffer(32 * 4 + 4));
     this.tasks = new Map();
   }
 
-  scheduleTask(task: SynclinkTask) {
+  scheduleTask(task: SynclinkTask<any>): void {
     task.taskId = this.nextTaskId[0];
     this.nextTaskId[0] += 2;
     task.signal_buffer = this.signal_buffer;
     this.tasks.set(task.taskId, task);
   }
 
-  waitOnSignalBuffer() {
+  waitOnSignalBuffer(): void {
     let timeout = 50;
     while (true) {
       let status = Atomics.wait(this.signal_buffer, 0, 0, timeout);
@@ -343,7 +351,7 @@ class _Syncifier {
     }
   }
 
-  *tasksIdsToWakeup() {
+  *tasksIdsToWakeup(): Generator<number, void, void> {
     let flag = Atomics.load(this.signal_buffer, 0);
     for (let i = 0; i < 32; i++) {
       let bit = 1 << i;
@@ -355,7 +363,7 @@ class _Syncifier {
     }
   }
 
-  pollTasks(task?: SynclinkTask) {
+  pollTasks(task?: SynclinkTask<any>): boolean {
     let result = false;
     for (let wokenTaskId of this.tasksIdsToWakeup()) {
       // console.log("poll task", wokenTaskId, "looking for",task);
@@ -374,7 +382,7 @@ class _Syncifier {
     return result;
   }
 
-  syncifyTask(task: SynclinkTask) {
+  syncifyTask(task: SynclinkTask<any>): void {
     while (true) {
       if (this.pollTasks(task)) {
         return;
