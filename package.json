@@ -1,6 +1,6 @@
 {
   "name": "synclink",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Synchronously or asynchronously communicate with a worker",
   "main": "dist/cjs/synclink.js",
   "module": "dist/esm/synclink.mjs",
