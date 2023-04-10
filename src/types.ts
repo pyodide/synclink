@@ -4,7 +4,6 @@ export const createEndpoint = Symbol("Synclink.endpoint");
 export const releaseProxy = Symbol("Synclink.releaseProxy");
 export const proxyMarker = Symbol("Synclink.proxy");
 
-
 /**
  * Interface of values that were marked to be proxied with `synclink.proxy()`.
  * Can also be implemented by classes.
@@ -32,7 +31,7 @@ type Unpromisify<P> = P extends Promise<infer T> ? T : P;
  * Takes the raw type of a remote property and returns the type that is visible to the local thread on the proxy.
  *
  * Note: This needs to be its own type alias, otherwise it will not distribute over unions.
- * See https://www.typescriptlang.org/docs/handbook/advanced-types.html#distributive-conditional-types
+ * See https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
  */
 type RemoteProperty<T> =
   // If the value is a method, synclink will proxy it automatically.
