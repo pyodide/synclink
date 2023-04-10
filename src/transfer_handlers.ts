@@ -2,6 +2,7 @@ import { Endpoint, WireValue, WireValueType, StoreKey } from "./protocol";
 import { generateUUID } from "./request_response";
 import { createProxy, expose, wrap } from "./async_task";
 import { FakeMessageChannel } from "./fake_message_channel";
+import { ProxyMarked, proxyMarker } from "./types";
 
 export const throwMarker = Symbol("Synclink.thrown");
 
@@ -252,16 +253,6 @@ export function storeDeleteKey(obj: any, key: StoreKey): any {
   let { objects } = obj[proxyStore];
   objects.delete(key);
   console.log("deleted", key, objects);
-}
-
-export const proxyMarker = Symbol("Synclink.proxy");
-
-/**
- * Interface of values that were marked to be proxied with `synclink.proxy()`.
- * Can also be implemented by classes.
- */
-export interface ProxyMarked {
-  [proxyMarker]: true;
 }
 
 export function proxy<T>(obj: T): T & ProxyMarked {
