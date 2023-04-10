@@ -18,12 +18,8 @@ export {
   transferHandlers,
   transfer,
 } from "./transfer_handlers";
+
 export {
-  createEndpoint,
-  releaseProxy,
-  expose,
-  wrap,
-  windowEndpoint,
   ProxyOrClone,
   UnproxyOrClone,
   RemoteObject,
@@ -31,6 +27,16 @@ export {
   ProxyMethods,
   Remote,
   Local,
+  createEndpoint,
+  releaseProxy,
+  proxyMarker, 
+  ProxyMarked
+} from "./types";
+
+export {
+  expose,
+  wrap,
+  windowEndpoint,
 } from "./async_task";
 
 export { interrupt_buffer, setInterruptHandler, Syncifier } from "./task";
@@ -42,7 +48,7 @@ import {
 } from "./transfer_handlers";
 export { FakeMessageChannel } from "./fake_message_channel";
 
-export { proxyMarker, ProxyMarked, proxy } from "./transfer_handlers";
+export { proxy } from "./transfer_handlers";
 
 transferHandlers.set("throw", throwTransferHandler);
 transferHandlers.set("proxy", proxyTransferHandler);
