@@ -32,7 +32,7 @@ class FakeMessagePort {
   }
 }
 
-export class FakeMessageChannel {
+class FakeMessageChannel {
   port1: FakeMessagePort;
   port2: FakeMessagePort;
   constructor() {
@@ -42,3 +42,8 @@ export class FakeMessageChannel {
     this.port2._otherPort = this.port1;
   }
 }
+
+let FakeMessageChannel1 =
+  FakeMessageChannel as unknown as typeof MessageChannel;
+
+export { FakeMessageChannel1 as FakeMessageChannel };
