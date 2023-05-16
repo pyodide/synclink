@@ -3,6 +3,7 @@ import { generateUUID } from "./request_response";
 import { createProxy, expose, wrap } from "./async_task";
 import { FakeMessageChannel } from "./fake_message_channel";
 import { ProxyMarked, proxyMarker } from "./types";
+import * as ErrorStackParser from "error-stack-parser";
 
 export const throwMarker = Symbol("Synclink.thrown");
 
@@ -103,6 +104,44 @@ type SerializedThrownValue =
   | { isError: true; value: Error }
   | { isError: false; value: unknown };
 
+const CHROME_IE_STACK_REGEXP = /^\s*at .*(\S+:\d+|\(native\))/m;
+
+function renderChromeStack(s: ErrorStackParser.StackFrame): string {
+  const locationInfo = [s.fileName, s.lineNumber, s.columnNumber].join(":");
+  if (s.functionName) {
+    return `    at ${s.functionName} (${locationInfo})`;
+  } else {
+    return `    at ${locationInfo}`;
+  }
+}
+
+function renderFirefoxStack(s: ErrorStackParser.StackFrame): string {
+  const locationInfo = [s.fileName, s.lineNumber, s.columnNumber].join(":");
+  return `${s.functionName || ""}@${locationInfo}`;
+}
+
+function fixStackTrace(origError: Error): Error {
+  const e = new Error(origError.message);
+  e.name = origError.name;
+  const isChromeStack = origError.stack?.match(CHROME_IE_STACK_REGEXP);
+  const stackList = ErrorStackParser.parse(origError)
+    .concat(ErrorStackParser.parse(e))
+    .filter(
+      (s) =>
+        !s.fileName ||
+        !/synclink\.m?js$/.test(s.fileName) ||
+        s.functionName?.startsWith("SynclinkTask.") ||
+        s.functionName?.startsWith("then"),
+    )
+    .map(isChromeStack ? renderChromeStack : renderFirefoxStack);
+  if (isChromeStack) {
+    stackList.unshift(e.stack!.split("\n", 2)[0]);
+  }
+  const stack = stackList.join("\n");
+  e.stack = stack;
+  return e;
+}
+
 /**
  * Internal transfer handler to handle thrown exceptions.
  */
@@ -130,10 +169,7 @@ export const throwTransferHandler: TransferHandler<
   },
   deserialize(serialized) {
     if (serialized.isError) {
-      throw Object.assign(
-        new Error(serialized.value.message),
-        serialized.value,
-      );
+      throw fixStackTrace(serialized.value);
     }
     throw serialized.value;
   },
