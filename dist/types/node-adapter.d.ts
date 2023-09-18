@@ -12,17 +12,9 @@
  */
 import { Endpoint } from "./protocol";
 export interface NodeEndpoint {
-  postMessage(message: any, transfer?: any[]): void;
-  on(
-    type: string,
-    listener: EventListenerOrEventListenerObject,
-    options?: {},
-  ): void;
-  off(
-    type: string,
-    listener: EventListenerOrEventListenerObject,
-    options?: {},
-  ): void;
-  start?: () => void;
+    postMessage(message: any, transfer?: any[]): void;
+    on(type: string, listener: EventListenerOrEventListenerObject, options?: {}): void;
+    off(type: string, listener: EventListenerOrEventListenerObject, options?: {}): void;
+    start?: () => void;
 }
 export default function nodeEndpoint(nep: NodeEndpoint): Endpoint;

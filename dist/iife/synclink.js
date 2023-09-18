@@ -9,45 +9,33 @@ var Synclink = (() => {
   var __hasOwnProp = Object.prototype.hasOwnProperty;
   var __propIsEnum = Object.prototype.propertyIsEnumerable;
   var __pow = Math.pow;
-  var __defNormalProp = (obj, key, value) =>
-    key in obj
-      ? __defProp(obj, key, {
-          enumerable: true,
-          configurable: true,
-          writable: true,
-          value,
-        })
-      : (obj[key] = value);
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
   var __spreadValues = (a, b) => {
-    for (var prop in (b ||= {}))
-      if (__hasOwnProp.call(b, prop)) __defNormalProp(a, prop, b[prop]);
+    for (var prop in b ||= {})
+      if (__hasOwnProp.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
     if (__getOwnPropSymbols)
       for (var prop of __getOwnPropSymbols(b)) {
-        if (__propIsEnum.call(b, prop)) __defNormalProp(a, prop, b[prop]);
+        if (__propIsEnum.call(b, prop))
+          __defNormalProp(a, prop, b[prop]);
       }
     return a;
   };
   var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
-  var __name = (target, value) =>
-    __defProp(target, "name", { value, configurable: true });
+  var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
   var __export = (target, all) => {
     for (var name in all)
       __defProp(target, name, { get: all[name], enumerable: true });
   };
   var __copyProps = (to, from, except, desc) => {
-    if ((from && typeof from === "object") || typeof from === "function") {
+    if (from && typeof from === "object" || typeof from === "function") {
       for (let key of __getOwnPropNames(from))
         if (!__hasOwnProp.call(to, key) && key !== except)
-          __defProp(to, key, {
-            get: () => from[key],
-            enumerable:
-              !(desc = __getOwnPropDesc(from, key)) || desc.enumerable,
-          });
+          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
     }
     return to;
   };
-  var __toCommonJS = (mod) =>
-    __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+  var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
   var __async = (__this, __arguments, generator) => {
     return new Promise((resolve, reject) => {
       var fulfilled = (value) => {
@@ -64,10 +52,7 @@ var Synclink = (() => {
           reject(e);
         }
       };
-      var step = (x) =>
-        x.done
-          ? resolve(x.value)
-          : Promise.resolve(x.value).then(fulfilled, rejected);
+      var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
       step((generator = generator.apply(__this, __arguments)).next());
     });
   };
@@ -87,7 +72,7 @@ var Synclink = (() => {
     transfer: () => transfer,
     transferHandlers: () => transferHandlers,
     windowEndpoint: () => windowEndpoint,
-    wrap: () => wrap,
+    wrap: () => wrap
   });
 
   // src/protocol.ts
@@ -96,9 +81,11 @@ var Synclink = (() => {
     ["PROXY" /* PROXY */]: 1,
     ["THROW" /* THROW */]: 1,
     ["HANDLER" /* HANDLER */]: 1,
-    ["ID" /* ID */]: 1,
+    ["ID" /* ID */]: 1
   };
-  var wireValueTypeSet = new Set(Object.keys(wireValueTypeRecord));
+  var wireValueTypeSet = new Set(
+    Object.keys(wireValueTypeRecord)
+  );
   var messageTypeRecord = {
     ["SET" /* SET */]: 1,
     ["GET" /* GET */]: 1,
@@ -106,7 +93,7 @@ var Synclink = (() => {
     ["CONSTRUCT" /* CONSTRUCT */]: 1,
     ["ENDPOINT" /* ENDPOINT */]: 1,
     ["RELEASE" /* RELEASE */]: 1,
-    ["DESTROY" /* DESTROY */]: 1,
+    ["DESTROY" /* DESTROY */]: 1
   };
   var messageTypeSet = new Set(Object.keys(messageTypeRecord));
 
@@ -116,20 +103,17 @@ var Synclink = (() => {
     return [
       id,
       new Promise((resolve) => {
-        ep.addEventListener(
-          "message",
-          /* @__PURE__ */ __name(function l(ev) {
-            if (!ev.data || !ev.data.id || ev.data.id !== id) {
-              return;
-            }
-            ep.removeEventListener("message", l);
-            resolve(ev.data);
-          }, "l"),
-        );
+        ep.addEventListener("message", /* @__PURE__ */ __name(function l(ev) {
+          if (!ev.data || !ev.data.id || ev.data.id !== id) {
+            return;
+          }
+          ep.removeEventListener("message", l);
+          resolve(ev.data);
+        }, "l"));
         if (ep.start) {
           ep.start();
         }
-      }),
+      })
     ];
   }
   __name(requestResponseMessageInner, "requestResponseMessageInner");
@@ -141,9 +125,7 @@ var Synclink = (() => {
   __name(requestResponseMessage, "requestResponseMessage");
   var UUID_LENGTH = 63;
   function randomSegment() {
-    let result = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(
-      16,
-    );
+    let result = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(16);
     let pad = 15 - result.length;
     if (pad > 0) {
       result = Array.from({ length: pad }, (_) => 0).join("") + result;
@@ -185,7 +167,8 @@ var Synclink = (() => {
   }
   __name(sleep, "sleep");
   var SynclinkTask = class {
-    constructor(endpoint, msg, transfers = [], extra = () => {}) {
+    constructor(endpoint, msg, transfers = [], extra = () => {
+    }) {
       this.endpoint = endpoint;
       this.msg = msg;
       this.extra = extra;
@@ -213,7 +196,7 @@ var Synclink = (() => {
         (reason) => {
           this._exception = reason;
           this._reject(reason);
-        },
+        }
       );
       return this;
     }
@@ -276,9 +259,9 @@ var Synclink = (() => {
           data_buffer,
           signal_buffer,
           taskId,
-          syncify: true,
+          syncify: true
         }),
-        transfers,
+        transfers
       );
       yield;
       if (Atomics.load(size_buffer, SZ_BUF_FITS_IDX) === SZ_BUF_DOESNT_FIT) {
@@ -297,7 +280,7 @@ var Synclink = (() => {
         let result = yield requestResponseMessage(
           this.endpoint,
           this.msg,
-          this.transfers,
+          this.transfers
         );
         this.extra();
         return fromWireValue(this.endpoint, result);
@@ -323,9 +306,7 @@ var Synclink = (() => {
     return __async(this, null, function* () {
       let index = (taskId >> 1) % 32;
       let sleepTime = 1;
-      while (
-        Atomics.compareExchange(signal_buffer, index + 1, 0, taskId) !== 0
-      ) {
+      while (Atomics.compareExchange(signal_buffer, index + 1, 0, taskId) !== 0) {
         yield sleep(sleepTime);
         if (sleepTime < 32) {
           sleepTime *= 2;
@@ -390,9 +371,7 @@ var Synclink = (() => {
   var _Syncifier = class {
     constructor() {
       this.nextTaskId = new Int32Array([1]);
-      this.signal_buffer = new Int32Array(
-        new shared_array_buffer_default(32 * 4 + 4),
-      );
+      this.signal_buffer = new Int32Array(new shared_array_buffer_default(32 * 4 + 4));
       this.tasks = /* @__PURE__ */ new Map();
     }
     scheduleTask(task) {
@@ -444,12 +423,7 @@ var Synclink = (() => {
           throw new Error(`Assertion error: unknown taskId ${wokenTaskId}.`);
         }
         if (wokenTask.poll()) {
-          console.log(
-            "completed task ",
-            wokenTaskId,
-            wokenTask,
-            wokenTask._result,
-          );
+          console.log("completed task ", wokenTaskId, wokenTask, wokenTask._result);
           this.tasks.delete(wokenTaskId);
           if (wokenTask === task) {
             result = true;
@@ -472,7 +446,7 @@ var Synclink = (() => {
   };
   __name(_Syncifier, "_Syncifier");
   var Syncifier = new _Syncifier();
-  /* @__PURE__ */ __name(function syncifyPollLoop() {
+  (/* @__PURE__ */ __name(function syncifyPollLoop() {
     return __async(this, null, function* () {
       while (true) {
         if (Syncifier.pollTasks()) {
@@ -481,17 +455,14 @@ var Synclink = (() => {
         yield sleep(20);
       }
     });
-  }, "syncifyPollLoop")();
+  }, "syncifyPollLoop"))();
 
   // src/async_task.ts
   function innerMessageHandler(obj_arg, ep, message) {
-    const { id, path, store_key } = __spreadValues(
-      {
-        path: [],
-        store_key: void 0,
-      },
-      message,
-    );
+    const { id, path, store_key } = __spreadValues({
+      path: [],
+      store_key: void 0
+    }, message);
     let obj;
     if (store_key) {
       obj = storeGetValue(ep, store_key);
@@ -582,61 +553,50 @@ var Synclink = (() => {
   __name(expose, "expose");
   function exposeInner(obj_arg, ep = globalThis, wrap2) {
     storeCreate(ep);
-    ep.addEventListener(
-      "message",
-      /* @__PURE__ */ __name(function callback(ev) {
-        return __async(this, null, function* () {
-          if (!ev || !ev.data) {
-            return;
-          }
-          if (!messageTypeSet.has(ev.data.type)) {
-            if (!wireValueTypeSet.has(ev.data.type) && !ev.data.data_buffer) {
-              console.warn("Internal error on message:", ev.data);
-              throw new Error(
-                `Synclink Internal error: Expected message.type to either be a MessageType or a WireValueType, got '${ev.data.type}'`,
-              );
-            }
-            return;
-          }
-          const message = ev.data;
-          const { id, type, store_key } = __spreadValues(
-            { store_key: void 0 },
-            message,
-          );
-          if (wrap2 && store_key === void 0) {
-            return;
-          }
-          const sync = ev.data.syncify;
-          let returnValue;
-          try {
-            returnValue = innerMessageHandler(obj_arg, ep, message);
-            if (returnValue && returnValue.then) {
-              if (sync && ep._bypass) {
-                throw new Error(
-                  "Cannot use syncify with bypass on an async method",
-                );
-              }
-              returnValue = yield returnValue;
-            }
-          } catch (value) {
-            returnValue = { value, [throwMarker]: 0 };
-          }
-          const [wireValue, transferables] = toWireValue(ep, returnValue);
-          if (sync) {
-            syncResponse(ep, ev.data, wireValue);
-          } else {
-            ep.postMessage(
-              __spreadProps(__spreadValues({}, wireValue), { id }),
-              transferables,
+    ep.addEventListener("message", /* @__PURE__ */ __name(function callback(ev) {
+      return __async(this, null, function* () {
+        if (!ev || !ev.data) {
+          return;
+        }
+        if (!messageTypeSet.has(ev.data.type)) {
+          if (!wireValueTypeSet.has(ev.data.type) && !ev.data.data_buffer) {
+            console.warn("Internal error on message:", ev.data);
+            throw new Error(
+              `Synclink Internal error: Expected message.type to either be a MessageType or a WireValueType, got '${ev.data.type}'`
             );
           }
-          if (type === "RELEASE" /* RELEASE */) {
-            ep.removeEventListener("message", callback);
-            closeEndPoint(ep);
+          return;
+        }
+        const message = ev.data;
+        const { id, type, store_key } = __spreadValues({ store_key: void 0 }, message);
+        if (wrap2 && store_key === void 0) {
+          return;
+        }
+        const sync = ev.data.syncify;
+        let returnValue;
+        try {
+          returnValue = innerMessageHandler(obj_arg, ep, message);
+          if (returnValue && returnValue.then) {
+            if (sync && ep._bypass) {
+              throw new Error("Cannot use syncify with bypass on an async method");
+            }
+            returnValue = yield returnValue;
           }
-        });
-      }, "callback"),
-    );
+        } catch (value) {
+          returnValue = { value, [throwMarker]: 0 };
+        }
+        const [wireValue, transferables] = toWireValue(ep, returnValue);
+        if (sync) {
+          syncResponse(ep, ev.data, wireValue);
+        } else {
+          ep.postMessage(__spreadProps(__spreadValues({}, wireValue), { id }), transferables);
+        }
+        if (type === "RELEASE" /* RELEASE */) {
+          ep.removeEventListener("message", callback);
+          closeEndPoint(ep);
+        }
+      });
+    }, "callback"));
     if (ep.start) {
       ep.start();
     }
@@ -647,7 +607,8 @@ var Synclink = (() => {
   }
   __name(isMessagePort, "isMessagePort");
   function closeEndPoint(endpoint) {
-    if (isMessagePort(endpoint)) endpoint.close();
+    if (isMessagePort(endpoint))
+      endpoint.close();
   }
   __name(closeEndPoint, "closeEndPoint");
   function wrap(ep, target) {
@@ -662,14 +623,12 @@ var Synclink = (() => {
     }
   }
   __name(throwIfProxyReleased, "throwIfProxyReleased");
-  function createProxy(
-    ep,
-    {
-      store_key = void 0,
-      path = [],
-      target = /* @__PURE__ */ __name(function () {}, "target"),
-    },
-  ) {
+  function createProxy(ep, {
+    store_key = void 0,
+    path = [],
+    target = /* @__PURE__ */ __name(function() {
+    }, "target")
+  }) {
     let isProxyReleased = false;
     const proxy2 = new Proxy(target, {
       get(_target, prop) {
@@ -685,30 +644,31 @@ var Synclink = (() => {
                 ep,
                 {
                   type: "RELEASE" /* RELEASE */,
-                  path: path.map((p) => p.toString()),
+                  path: path.map((p) => p.toString())
                 },
                 [],
                 () => {
                   closeEndPoint(ep);
                   isProxyReleased = true;
-                },
+                }
               );
             };
           case "__destroy__":
             if (!store_key) {
-              return () => {};
+              return () => {
+              };
             }
             return () => {
               return new SynclinkTask(
                 ep,
                 {
                   type: "DESTROY" /* DESTROY */,
-                  store_key,
+                  store_key
                 },
                 [],
                 () => {
                   isProxyReleased = true;
-                },
+                }
               );
             };
           case "_as_message":
@@ -716,7 +676,7 @@ var Synclink = (() => {
               return {
                 type: "GET" /* GET */,
                 store_key,
-                path: path.map((p) => p.toString()),
+                path: path.map((p) => p.toString())
               };
             };
           case "then":
@@ -731,10 +691,10 @@ var Synclink = (() => {
               {
                 type: "GET" /* GET */,
                 store_key,
-                path: path.map((p) => p.toString()),
+                path: path.map((p) => p.toString())
               },
               [],
-              void 0,
+              void 0
             );
             return r[prop].bind(r);
           default:
@@ -750,9 +710,9 @@ var Synclink = (() => {
             type: "SET" /* SET */,
             store_key,
             path: [...path, prop].map((p) => p.toString()),
-            value,
+            value
           },
-          transferables,
+          transferables
         ).then((v) => fromWireValue(ep, v));
       },
       apply(_target, _thisArg, rawArgumentList) {
@@ -760,7 +720,7 @@ var Synclink = (() => {
         const last = path[path.length - 1];
         if (last === createEndpoint) {
           return requestResponseMessage(ep, {
-            type: "ENDPOINT" /* ENDPOINT */,
+            type: "ENDPOINT" /* ENDPOINT */
           }).then((v) => fromWireValue(ep, v));
         }
         if (last === "bind") {
@@ -772,7 +732,7 @@ var Synclink = (() => {
         }
         const [argumentList, transferables] = processArguments(
           ep,
-          rawArgumentList,
+          rawArgumentList
         );
         return new SynclinkTask(
           ep,
@@ -780,17 +740,17 @@ var Synclink = (() => {
             type: "APPLY" /* APPLY */,
             store_key,
             path: path.map((p) => p.toString()),
-            argumentList,
+            argumentList
           },
           transferables,
-          void 0,
+          void 0
         );
       },
       construct(_target, rawArgumentList) {
         throwIfProxyReleased(isProxyReleased);
         const [argumentList, transferables] = processArguments(
           ep,
-          rawArgumentList,
+          rawArgumentList
         );
         return requestResponseMessage(
           ep,
@@ -798,14 +758,14 @@ var Synclink = (() => {
             type: "CONSTRUCT" /* CONSTRUCT */,
             store_key,
             path: path.map((p) => p.toString()),
-            argumentList,
+            argumentList
           },
-          transferables,
+          transferables
         ).then((v) => fromWireValue(ep, v));
       },
       ownKeys(_target) {
         return [];
-      },
+      }
     });
     return proxy2;
   }
@@ -821,10 +781,9 @@ var Synclink = (() => {
   __name(processArguments, "processArguments");
   function windowEndpoint(w, context = self, targetOrigin = "*") {
     return {
-      postMessage: (msg, transferables) =>
-        w.postMessage(msg, targetOrigin, transferables),
+      postMessage: (msg, transferables) => w.postMessage(msg, targetOrigin, transferables),
       addEventListener: context.addEventListener.bind(context),
-      removeEventListener: context.removeEventListener.bind(context),
+      removeEventListener: context.removeEventListener.bind(context)
     };
   }
   __name(windowEndpoint, "windowEndpoint");
@@ -836,8 +795,10 @@ var Synclink = (() => {
       this._bypass = true;
       this._otherPort = this;
     }
-    start() {}
-    close() {}
+    start() {
+    }
+    close() {
+    }
     addEventListener(event, handler) {
       if (event === "message") {
         this._handlers.push(handler);
@@ -878,31 +839,14 @@ var Synclink = (() => {
     return obj;
   }
   __name(transfer, "transfer");
-  var isObject = /* @__PURE__ */ __name(
-    (val) =>
-      (typeof val === "object" && val !== null) || typeof val === "function",
-    "isObject",
-  );
+  var isObject = /* @__PURE__ */ __name((val) => typeof val === "object" && val !== null || typeof val === "function", "isObject");
   var transferHandlers = /* @__PURE__ */ new Map();
   function isArrayBufferOrView(obj) {
-    return (
-      ArrayBuffer.isView(obj) ||
-      Object.prototype.toString.call(obj) === "[object ArrayBuffer]"
-    );
+    return ArrayBuffer.isView(obj) || Object.prototype.toString.call(obj) === "[object ArrayBuffer]";
   }
   __name(isArrayBufferOrView, "isArrayBufferOrView");
   function isPlain(val) {
-    return (
-      !val ||
-      typeof val === "string" ||
-      typeof val === "boolean" ||
-      typeof val === "number" ||
-      Array.isArray(val) ||
-      isArrayBufferOrView(val) ||
-      !val.constructor ||
-      (val.constructor === Object &&
-        Object.prototype.toString.call(val) === "[object Object]")
-    );
+    return !val || typeof val === "string" || typeof val === "boolean" || typeof val === "number" || Array.isArray(val) || isArrayBufferOrView(val) || !val.constructor || val.constructor === Object && Object.prototype.toString.call(val) === "[object Object]";
   }
   __name(isPlain, "isPlain");
   function isSerializable(obj, transfers = []) {
@@ -937,8 +881,8 @@ var Synclink = (() => {
           value: {
             message: value.message,
             name: value.name,
-            stack: value.stack,
-          },
+            stack: value.stack
+          }
         };
       } else {
         serialized = { isError: false, value };
@@ -949,33 +893,29 @@ var Synclink = (() => {
       if (serialized.isError) {
         throw Object.assign(
           new Error(serialized.value.message),
-          serialized.value,
+          serialized.value
         );
       }
       throw serialized.value;
-    },
+    }
   };
   function toWireValue(ep, value) {
     if (value && value.$$ep === ep) {
       return [
         {
           type: "PROXY" /* PROXY */,
-          message: value._as_message(),
+          message: value._as_message()
         },
-        [],
+        []
       ];
     }
-    if (
-      value &&
-      value.constructor &&
-      value.constructor.name === "SynclinkTask"
-    ) {
+    if (value && value.constructor && value.constructor.name === "SynclinkTask") {
       return [
         {
           type: "PROXY" /* PROXY */,
-          message: value.msg,
+          message: value.msg
         },
-        [],
+        []
       ];
     }
     if (ep._bypass) {
@@ -989,9 +929,9 @@ var Synclink = (() => {
             {
               type: "HANDLER" /* HANDLER */,
               name,
-              value: serializedValue,
+              value: serializedValue
             },
-            transferables,
+            transferables
           ];
         }
       }
@@ -1002,9 +942,9 @@ var Synclink = (() => {
       return [
         {
           type: "RAW" /* RAW */,
-          value,
+          value
         },
-        transferCache.get(value) || [],
+        transferCache.get(value) || []
       ];
     }
     let store_key = storeNewValue(ep, value);
@@ -1013,9 +953,9 @@ var Synclink = (() => {
         type: "ID" /* ID */,
         store_key,
         endpoint_uuid: ep[endpointUUID],
-        ownkeys: Object.getOwnPropertyNames(value),
+        ownkeys: Object.getOwnPropertyNames(value)
       },
-      [],
+      []
     ];
   }
   __name(toWireValue, "toWireValue");
@@ -1041,10 +981,7 @@ var Synclink = (() => {
     if (proxyStore in obj) {
       return;
     }
-    obj[proxyStore] = {
-      objects: /* @__PURE__ */ new Map(),
-      counter: new Uint32Array([1]),
-    };
+    obj[proxyStore] = { objects: /* @__PURE__ */ new Map(), counter: new Uint32Array([1]) };
     obj[endpointUUID] = generateUUID();
   }
   __name(storeCreate, "storeCreate");
@@ -1080,16 +1017,14 @@ var Synclink = (() => {
   var proxyTransferHandler = {
     canHandle: (val) => isObject(val) && val[proxyMarker],
     serialize(obj) {
-      const { port1, port2 } = proxyFakeMessagePort
-        ? new FakeMessageChannel1()
-        : new MessageChannel();
+      const { port1, port2 } = proxyFakeMessagePort ? new FakeMessageChannel1() : new MessageChannel();
       expose(obj, port1);
       return [port2, [port2]];
     },
     deserialize(port) {
       port.start();
       return wrap(port);
-    },
+    }
   };
 
   // src/synclink.ts
@@ -1104,7 +1039,7 @@ var Synclink = (() => {
     },
     deserialize(value) {
       return new Headers(value);
-    },
+    }
   });
   return __toCommonJS(synclink_exports);
 })();

@@ -15,9 +15,9 @@ export declare let interrupt_buffer: Int32Array;
  */
 export declare function setInterruptHandler(handler: () => never): void;
 interface ProxyPromise {
-  endpoint: Endpoint;
-  msg: Message;
-  transfers: Transferable[];
+    endpoint: Endpoint;
+    msg: Message;
+    transfers: Transferable[];
 }
 /**
  * Synchronously request work to be done on the other thread. Will block by
@@ -35,9 +35,7 @@ interface ProxyPromise {
  * @param transfers {Transferable[]} A list of objects to transfer as part of
  * msg.
  */
-export declare function syncRequest(
-  task: ProxyPromise,
-): Generator<undefined, any, unknown>;
+export declare function syncRequest(task: ProxyPromise): Generator<undefined, any, unknown>;
 /**
  * Respond to a blocking request. Most of the work has already been done in
  * asynclink, we are just responsible here for getting the return value back to
@@ -50,9 +48,5 @@ export declare function syncRequest(
  * @param returnValue The value we want to send back to the requester. We have
  *        to encode it into data_buffer.
  */
-export declare function syncResponse(
-  endpoint: Endpoint,
-  msg: any,
-  returnValue: WireValue,
-): Promise<void>;
+export declare function syncResponse(endpoint: Endpoint, msg: any, returnValue: WireValue): Promise<void>;
 export {};
