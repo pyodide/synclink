@@ -1,5 +1,6 @@
 var __defProp = Object.defineProperty;
-var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+var __name = (target, value) =>
+  __defProp(target, "name", { value, configurable: true });
 
 // src/node-adapter.ts
 function nodeEndpoint(nep) {
@@ -25,11 +26,9 @@ function nodeEndpoint(nep) {
       nep.off("message", l);
       listeners.delete(eh);
     },
-    start: nep.start && nep.start.bind(nep)
+    start: nep.start && nep.start.bind(nep),
   };
 }
 __name(nodeEndpoint, "nodeEndpoint");
-export {
-  nodeEndpoint as default
-};
+export { nodeEndpoint as default };
 //# sourceMappingURL=node-adapter.mjs.map

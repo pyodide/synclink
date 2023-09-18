@@ -11,100 +11,127 @@
  * limitations under the License.
  */
 export interface EventSource {
-    addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: {}): void;
-    removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: {}): void;
+  addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: {},
+  ): void;
+  removeEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: {},
+  ): void;
 }
 export interface PostMessageWithOrigin {
-    postMessage(message: any, targetOrigin: string, transfer?: Transferable[]): void;
+  postMessage(
+    message: any,
+    targetOrigin: string,
+    transfer?: Transferable[],
+  ): void;
 }
 export interface Endpoint extends EventSource {
-    postMessage(message: any, transfer?: Transferable[]): void;
-    start?: () => void;
-    _bypass?: boolean;
+  postMessage(message: any, transfer?: Transferable[]): void;
+  start?: () => void;
+  _bypass?: boolean;
 }
 export declare const enum WireValueType {
-    RAW = "RAW",
-    PROXY = "PROXY",
-    THROW = "THROW",
-    HANDLER = "HANDLER",
-    ID = "ID"
+  RAW = "RAW",
+  PROXY = "PROXY",
+  THROW = "THROW",
+  HANDLER = "HANDLER",
+  ID = "ID",
 }
-export declare const wireValueTypeSet: Set<"RAW" | "PROXY" | "THROW" | "HANDLER" | "ID">;
+export declare const wireValueTypeSet: Set<
+  "RAW" | "PROXY" | "THROW" | "HANDLER" | "ID"
+>;
 export interface RawWireValue {
-    id?: string;
-    type: WireValueType.RAW;
-    value: {};
+  id?: string;
+  type: WireValueType.RAW;
+  value: {};
 }
 export interface HandlerWireValue {
-    id?: string;
-    type: WireValueType.HANDLER;
-    name: string;
-    value: unknown;
+  id?: string;
+  type: WireValueType.HANDLER;
+  name: string;
+  value: unknown;
 }
 export interface IdWireValue {
-    id?: string;
-    type: WireValueType.ID;
-    ownkeys: string[];
-    endpoint_uuid: string;
-    store_key: number;
+  id?: string;
+  type: WireValueType.ID;
+  ownkeys: string[];
+  endpoint_uuid: string;
+  store_key: number;
 }
 export interface ProxyWireValue {
-    id?: string;
-    type: WireValueType.PROXY;
-    message: Message;
+  id?: string;
+  type: WireValueType.PROXY;
+  message: Message;
 }
-export type WireValue = RawWireValue | HandlerWireValue | IdWireValue | ProxyWireValue;
+export type WireValue =
+  | RawWireValue
+  | HandlerWireValue
+  | IdWireValue
+  | ProxyWireValue;
 export type MessageID = string;
 export type StoreKey = number;
 export declare const enum MessageType {
-    GET = "GET",
-    SET = "SET",
-    APPLY = "APPLY",
-    CONSTRUCT = "CONSTRUCT",
-    ENDPOINT = "ENDPOINT",
-    RELEASE = "RELEASE",
-    DESTROY = "DESTROY"
+  GET = "GET",
+  SET = "SET",
+  APPLY = "APPLY",
+  CONSTRUCT = "CONSTRUCT",
+  ENDPOINT = "ENDPOINT",
+  RELEASE = "RELEASE",
+  DESTROY = "DESTROY",
 }
-export declare const messageTypeSet: Set<"GET" | "SET" | "APPLY" | "CONSTRUCT" | "ENDPOINT" | "RELEASE" | "DESTROY">;
+export declare const messageTypeSet: Set<
+  "GET" | "SET" | "APPLY" | "CONSTRUCT" | "ENDPOINT" | "RELEASE" | "DESTROY"
+>;
 export interface GetMessage {
-    id?: MessageID;
-    store_key?: StoreKey;
-    type: MessageType.GET;
-    path: string[];
+  id?: MessageID;
+  store_key?: StoreKey;
+  type: MessageType.GET;
+  path: string[];
 }
 export interface SetMessage {
-    id?: MessageID;
-    type: MessageType.SET;
-    store_key?: StoreKey;
-    path: string[];
-    value: WireValue;
+  id?: MessageID;
+  type: MessageType.SET;
+  store_key?: StoreKey;
+  path: string[];
+  value: WireValue;
 }
 export interface ApplyMessage {
-    id?: MessageID;
-    type: MessageType.APPLY;
-    store_key?: StoreKey;
-    path: string[];
-    argumentList: WireValue[];
+  id?: MessageID;
+  type: MessageType.APPLY;
+  store_key?: StoreKey;
+  path: string[];
+  argumentList: WireValue[];
 }
 export interface ConstructMessage {
-    id?: MessageID;
-    type: MessageType.CONSTRUCT;
-    store_key?: StoreKey;
-    path: string[];
-    argumentList: WireValue[];
+  id?: MessageID;
+  type: MessageType.CONSTRUCT;
+  store_key?: StoreKey;
+  path: string[];
+  argumentList: WireValue[];
 }
 export interface EndpointMessage {
-    id?: MessageID;
-    type: MessageType.ENDPOINT;
+  id?: MessageID;
+  type: MessageType.ENDPOINT;
 }
 export interface ReleaseMessage {
-    id?: MessageID;
-    type: MessageType.RELEASE;
-    path: string[];
+  id?: MessageID;
+  type: MessageType.RELEASE;
+  path: string[];
 }
 export interface DestroyMessage {
-    id?: MessageID;
-    type: MessageType.DESTROY;
-    store_key: StoreKey;
+  id?: MessageID;
+  type: MessageType.DESTROY;
+  store_key: StoreKey;
 }
-export type Message = GetMessage | SetMessage | ApplyMessage | ConstructMessage | EndpointMessage | ReleaseMessage | DestroyMessage;
+export type Message =
+  | GetMessage
+  | SetMessage
+  | ApplyMessage
+  | ConstructMessage
+  | EndpointMessage
+  | ReleaseMessage
+  | DestroyMessage;

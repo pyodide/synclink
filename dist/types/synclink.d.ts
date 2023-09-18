@@ -11,8 +11,24 @@
  * limitations under the License.
  */
 export { Endpoint } from "./protocol";
-export { TransferHandler, transferHandlers, transfer, } from "./transfer_handlers";
-export { ProxyOrClone, UnproxyOrClone, RemoteObject, LocalObject, ProxyMethods, Remote, Local, createEndpoint, releaseProxy, proxyMarker, ProxyMarked, } from "./types";
+export {
+  TransferHandler,
+  transferHandlers,
+  transfer,
+} from "./transfer_handlers";
+export {
+  ProxyOrClone,
+  UnproxyOrClone,
+  RemoteObject,
+  LocalObject,
+  ProxyMethods,
+  Remote,
+  Local,
+  createEndpoint,
+  releaseProxy,
+  proxyMarker,
+  ProxyMarked,
+} from "./types";
 export { expose, wrap, windowEndpoint } from "./async_task";
 export { interrupt_buffer, setInterruptHandler, Syncifier } from "./task";
 export { FakeMessageChannel } from "./fake_message_channel";

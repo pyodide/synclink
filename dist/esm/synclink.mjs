@@ -5,20 +5,27 @@ var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __propIsEnum = Object.prototype.propertyIsEnumerable;
 var __pow = Math.pow;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __defNormalProp = (obj, key, value) =>
+  key in obj
+    ? __defProp(obj, key, {
+        enumerable: true,
+        configurable: true,
+        writable: true,
+        value,
+      })
+    : (obj[key] = value);
 var __spreadValues = (a, b) => {
-  for (var prop in b ||= {})
-    if (__hasOwnProp.call(b, prop))
-      __defNormalProp(a, prop, b[prop]);
+  for (var prop in (b ||= {}))
+    if (__hasOwnProp.call(b, prop)) __defNormalProp(a, prop, b[prop]);
   if (__getOwnPropSymbols)
     for (var prop of __getOwnPropSymbols(b)) {
-      if (__propIsEnum.call(b, prop))
-        __defNormalProp(a, prop, b[prop]);
+      if (__propIsEnum.call(b, prop)) __defNormalProp(a, prop, b[prop]);
     }
   return a;
 };
 var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
-var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+var __name = (target, value) =>
+  __defProp(target, "name", { value, configurable: true });
 var __async = (__this, __arguments, generator) => {
   return new Promise((resolve, reject) => {
     var fulfilled = (value) => {
@@ -35,7 +42,10 @@ var __async = (__this, __arguments, generator) => {
         reject(e);
       }
     };
-    var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+    var step = (x) =>
+      x.done
+        ? resolve(x.value)
+        : Promise.resolve(x.value).then(fulfilled, rejected);
     step((generator = generator.apply(__this, __arguments)).next());
   });
 };
@@ -46,11 +56,9 @@ var wireValueTypeRecord = {
   ["PROXY" /* PROXY */]: 1,
   ["THROW" /* THROW */]: 1,
   ["HANDLER" /* HANDLER */]: 1,
-  ["ID" /* ID */]: 1
+  ["ID" /* ID */]: 1,
 };
-var wireValueTypeSet = new Set(
-  Object.keys(wireValueTypeRecord)
-);
+var wireValueTypeSet = new Set(Object.keys(wireValueTypeRecord));
 var messageTypeRecord = {
   ["SET" /* SET */]: 1,
   ["GET" /* GET */]: 1,
@@ -58,7 +66,7 @@ var messageTypeRecord = {
   ["CONSTRUCT" /* CONSTRUCT */]: 1,
   ["ENDPOINT" /* ENDPOINT */]: 1,
   ["RELEASE" /* RELEASE */]: 1,
-  ["DESTROY" /* DESTROY */]: 1
+  ["DESTROY" /* DESTROY */]: 1,
 };
 var messageTypeSet = new Set(Object.keys(messageTypeRecord));
 
@@ -68,17 +76,20 @@ function requestResponseMessageInner(ep) {
   return [
     id,
     new Promise((resolve) => {
-      ep.addEventListener("message", /* @__PURE__ */ __name(function l(ev) {
-        if (!ev.data || !ev.data.id || ev.data.id !== id) {
-          return;
-        }
-        ep.removeEventListener("message", l);
-        resolve(ev.data);
-      }, "l"));
+      ep.addEventListener(
+        "message",
+        /* @__PURE__ */ __name(function l(ev) {
+          if (!ev.data || !ev.data.id || ev.data.id !== id) {
+            return;
+          }
+          ep.removeEventListener("message", l);
+          resolve(ev.data);
+        }, "l"),
+      );
       if (ep.start) {
         ep.start();
       }
-    })
+    }),
   ];
 }
 __name(requestResponseMessageInner, "requestResponseMessageInner");
@@ -132,8 +143,7 @@ function sleep(ms) {
 }
 __name(sleep, "sleep");
 var SynclinkTask = class {
-  constructor(endpoint, msg, transfers = [], extra = () => {
-  }) {
+  constructor(endpoint, msg, transfers = [], extra = () => {}) {
     this.endpoint = endpoint;
     this.msg = msg;
     this.extra = extra;
@@ -161,7 +171,7 @@ var SynclinkTask = class {
       (reason) => {
         this._exception = reason;
         this._reject(reason);
-      }
+      },
     );
     return this;
   }
@@ -224,9 +234,9 @@ var SynclinkTask = class {
         data_buffer,
         signal_buffer,
         taskId,
-        syncify: true
+        syncify: true,
       }),
-      transfers
+      transfers,
     );
     yield;
     if (Atomics.load(size_buffer, SZ_BUF_FITS_IDX) === SZ_BUF_DOESNT_FIT) {
@@ -245,7 +255,7 @@ var SynclinkTask = class {
       let result = yield requestResponseMessage(
         this.endpoint,
         this.msg,
-        this.transfers
+        this.transfers,
       );
       this.extra();
       return fromWireValue(this.endpoint, result);
@@ -336,7 +346,9 @@ __name(setInterruptHandler, "setInterruptHandler");
 var _Syncifier = class {
   constructor() {
     this.nextTaskId = new Int32Array([1]);
-    this.signal_buffer = new Int32Array(new shared_array_buffer_default(32 * 4 + 4));
+    this.signal_buffer = new Int32Array(
+      new shared_array_buffer_default(32 * 4 + 4),
+    );
     this.tasks = /* @__PURE__ */ new Map();
   }
   scheduleTask(task) {
@@ -388,7 +400,12 @@ var _Syncifier = class {
         throw new Error(`Assertion error: unknown taskId ${wokenTaskId}.`);
       }
       if (wokenTask.poll()) {
-        console.log("completed task ", wokenTaskId, wokenTask, wokenTask._result);
+        console.log(
+          "completed task ",
+          wokenTaskId,
+          wokenTask,
+          wokenTask._result,
+        );
         this.tasks.delete(wokenTaskId);
         if (wokenTask === task) {
           result = true;
@@ -411,7 +428,7 @@ var _Syncifier = class {
 };
 __name(_Syncifier, "_Syncifier");
 var Syncifier = new _Syncifier();
-(/* @__PURE__ */ __name(function syncifyPollLoop() {
+/* @__PURE__ */ __name(function syncifyPollLoop() {
   return __async(this, null, function* () {
     while (true) {
       if (Syncifier.pollTasks()) {
@@ -420,14 +437,17 @@ var Syncifier = new _Syncifier();
       yield sleep(20);
     }
   });
-}, "syncifyPollLoop"))();
+}, "syncifyPollLoop")();
 
 // src/async_task.ts
 function innerMessageHandler(obj_arg, ep, message) {
-  const { id, path, store_key } = __spreadValues({
-    path: [],
-    store_key: void 0
-  }, message);
+  const { id, path, store_key } = __spreadValues(
+    {
+      path: [],
+      store_key: void 0,
+    },
+    message,
+  );
   let obj;
   if (store_key) {
     obj = storeGetValue(ep, store_key);
@@ -518,50 +538,61 @@ function expose(obj_arg, ep = globalThis) {
 __name(expose, "expose");
 function exposeInner(obj_arg, ep = globalThis, wrap2) {
   storeCreate(ep);
-  ep.addEventListener("message", /* @__PURE__ */ __name(function callback(ev) {
-    return __async(this, null, function* () {
-      if (!ev || !ev.data) {
-        return;
-      }
-      if (!messageTypeSet.has(ev.data.type)) {
-        if (!wireValueTypeSet.has(ev.data.type) && !ev.data.data_buffer) {
-          console.warn("Internal error on message:", ev.data);
-          throw new Error(
-            `Synclink Internal error: Expected message.type to either be a MessageType or a WireValueType, got '${ev.data.type}'`
+  ep.addEventListener(
+    "message",
+    /* @__PURE__ */ __name(function callback(ev) {
+      return __async(this, null, function* () {
+        if (!ev || !ev.data) {
+          return;
+        }
+        if (!messageTypeSet.has(ev.data.type)) {
+          if (!wireValueTypeSet.has(ev.data.type) && !ev.data.data_buffer) {
+            console.warn("Internal error on message:", ev.data);
+            throw new Error(
+              `Synclink Internal error: Expected message.type to either be a MessageType or a WireValueType, got '${ev.data.type}'`,
+            );
+          }
+          return;
+        }
+        const message = ev.data;
+        const { id, type, store_key } = __spreadValues(
+          { store_key: void 0 },
+          message,
+        );
+        if (wrap2 && store_key === void 0) {
+          return;
+        }
+        const sync = ev.data.syncify;
+        let returnValue;
+        try {
+          returnValue = innerMessageHandler(obj_arg, ep, message);
+          if (returnValue && returnValue.then) {
+            if (sync && ep._bypass) {
+              throw new Error(
+                "Cannot use syncify with bypass on an async method",
+              );
+            }
+            returnValue = yield returnValue;
+          }
+        } catch (value) {
+          returnValue = { value, [throwMarker]: 0 };
+        }
+        const [wireValue, transferables] = toWireValue(ep, returnValue);
+        if (sync) {
+          syncResponse(ep, ev.data, wireValue);
+        } else {
+          ep.postMessage(
+            __spreadProps(__spreadValues({}, wireValue), { id }),
+            transferables,
           );
         }
-        return;
-      }
-      const message = ev.data;
-      const { id, type, store_key } = __spreadValues({ store_key: void 0 }, message);
-      if (wrap2 && store_key === void 0) {
-        return;
-      }
-      const sync = ev.data.syncify;
-      let returnValue;
-      try {
-        returnValue = innerMessageHandler(obj_arg, ep, message);
-        if (returnValue && returnValue.then) {
-          if (sync && ep._bypass) {
-            throw new Error("Cannot use syncify with bypass on an async method");
-          }
-          returnValue = yield returnValue;
+        if (type === "RELEASE" /* RELEASE */) {
+          ep.removeEventListener("message", callback);
+          closeEndPoint(ep);
         }
-      } catch (value) {
-        returnValue = { value, [throwMarker]: 0 };
-      }
-      const [wireValue, transferables] = toWireValue(ep, returnValue);
-      if (sync) {
-        syncResponse(ep, ev.data, wireValue);
-      } else {
-        ep.postMessage(__spreadProps(__spreadValues({}, wireValue), { id }), transferables);
-      }
-      if (type === "RELEASE" /* RELEASE */) {
-        ep.removeEventListener("message", callback);
-        closeEndPoint(ep);
-      }
-    });
-  }, "callback"));
+      });
+    }, "callback"),
+  );
   if (ep.start) {
     ep.start();
   }
@@ -572,8 +603,7 @@ function isMessagePort(endpoint) {
 }
 __name(isMessagePort, "isMessagePort");
 function closeEndPoint(endpoint) {
-  if (isMessagePort(endpoint))
-    endpoint.close();
+  if (isMessagePort(endpoint)) endpoint.close();
 }
 __name(closeEndPoint, "closeEndPoint");
 function wrap(ep, target) {
@@ -588,12 +618,14 @@ function throwIfProxyReleased(isReleased) {
   }
 }
 __name(throwIfProxyReleased, "throwIfProxyReleased");
-function createProxy(ep, {
-  store_key = void 0,
-  path = [],
-  target = /* @__PURE__ */ __name(function() {
-  }, "target")
-}) {
+function createProxy(
+  ep,
+  {
+    store_key = void 0,
+    path = [],
+    target = /* @__PURE__ */ __name(function () {}, "target"),
+  },
+) {
   let isProxyReleased = false;
   const proxy2 = new Proxy(target, {
     get(_target, prop) {
@@ -609,31 +641,30 @@ function createProxy(ep, {
               ep,
               {
                 type: "RELEASE" /* RELEASE */,
-                path: path.map((p) => p.toString())
+                path: path.map((p) => p.toString()),
               },
               [],
               () => {
                 closeEndPoint(ep);
                 isProxyReleased = true;
-              }
+              },
             );
           };
         case "__destroy__":
           if (!store_key) {
-            return () => {
-            };
+            return () => {};
           }
           return () => {
             return new SynclinkTask(
               ep,
               {
                 type: "DESTROY" /* DESTROY */,
-                store_key
+                store_key,
               },
               [],
               () => {
                 isProxyReleased = true;
-              }
+              },
             );
           };
         case "_as_message":
@@ -641,7 +672,7 @@ function createProxy(ep, {
             return {
               type: "GET" /* GET */,
               store_key,
-              path: path.map((p) => p.toString())
+              path: path.map((p) => p.toString()),
             };
           };
         case "then":
@@ -656,10 +687,10 @@ function createProxy(ep, {
             {
               type: "GET" /* GET */,
               store_key,
-              path: path.map((p) => p.toString())
+              path: path.map((p) => p.toString()),
             },
             [],
-            void 0
+            void 0,
           );
           return r[prop].bind(r);
         default:
@@ -675,9 +706,9 @@ function createProxy(ep, {
           type: "SET" /* SET */,
           store_key,
           path: [...path, prop].map((p) => p.toString()),
-          value
+          value,
         },
-        transferables
+        transferables,
       ).then((v) => fromWireValue(ep, v));
     },
     apply(_target, _thisArg, rawArgumentList) {
@@ -685,7 +716,7 @@ function createProxy(ep, {
       const last = path[path.length - 1];
       if (last === createEndpoint) {
         return requestResponseMessage(ep, {
-          type: "ENDPOINT" /* ENDPOINT */
+          type: "ENDPOINT" /* ENDPOINT */,
         }).then((v) => fromWireValue(ep, v));
       }
       if (last === "bind") {
@@ -697,7 +728,7 @@ function createProxy(ep, {
       }
       const [argumentList, transferables] = processArguments(
         ep,
-        rawArgumentList
+        rawArgumentList,
       );
       return new SynclinkTask(
         ep,
@@ -705,17 +736,17 @@ function createProxy(ep, {
           type: "APPLY" /* APPLY */,
           store_key,
           path: path.map((p) => p.toString()),
-          argumentList
+          argumentList,
         },
         transferables,
-        void 0
+        void 0,
       );
     },
     construct(_target, rawArgumentList) {
       throwIfProxyReleased(isProxyReleased);
       const [argumentList, transferables] = processArguments(
         ep,
-        rawArgumentList
+        rawArgumentList,
       );
       return requestResponseMessage(
         ep,
@@ -723,14 +754,14 @@ function createProxy(ep, {
           type: "CONSTRUCT" /* CONSTRUCT */,
           store_key,
           path: path.map((p) => p.toString()),
-          argumentList
+          argumentList,
         },
-        transferables
+        transferables,
       ).then((v) => fromWireValue(ep, v));
     },
     ownKeys(_target) {
       return [];
-    }
+    },
   });
   return proxy2;
 }
@@ -746,9 +777,10 @@ function processArguments(ep, argumentList) {
 __name(processArguments, "processArguments");
 function windowEndpoint(w, context = self, targetOrigin = "*") {
   return {
-    postMessage: (msg, transferables) => w.postMessage(msg, targetOrigin, transferables),
+    postMessage: (msg, transferables) =>
+      w.postMessage(msg, targetOrigin, transferables),
     addEventListener: context.addEventListener.bind(context),
-    removeEventListener: context.removeEventListener.bind(context)
+    removeEventListener: context.removeEventListener.bind(context),
   };
 }
 __name(windowEndpoint, "windowEndpoint");
@@ -760,10 +792,8 @@ var FakeMessagePort = class {
     this._bypass = true;
     this._otherPort = this;
   }
-  start() {
-  }
-  close() {
-  }
+  start() {}
+  close() {}
   addEventListener(event, handler) {
     if (event === "message") {
       this._handlers.push(handler);
@@ -804,14 +834,31 @@ function transfer(obj, transfers) {
   return obj;
 }
 __name(transfer, "transfer");
-var isObject = /* @__PURE__ */ __name((val) => typeof val === "object" && val !== null || typeof val === "function", "isObject");
+var isObject = /* @__PURE__ */ __name(
+  (val) =>
+    (typeof val === "object" && val !== null) || typeof val === "function",
+  "isObject",
+);
 var transferHandlers = /* @__PURE__ */ new Map();
 function isArrayBufferOrView(obj) {
-  return ArrayBuffer.isView(obj) || Object.prototype.toString.call(obj) === "[object ArrayBuffer]";
+  return (
+    ArrayBuffer.isView(obj) ||
+    Object.prototype.toString.call(obj) === "[object ArrayBuffer]"
+  );
 }
 __name(isArrayBufferOrView, "isArrayBufferOrView");
 function isPlain(val) {
-  return !val || typeof val === "string" || typeof val === "boolean" || typeof val === "number" || Array.isArray(val) || isArrayBufferOrView(val) || !val.constructor || val.constructor === Object && Object.prototype.toString.call(val) === "[object Object]";
+  return (
+    !val ||
+    typeof val === "string" ||
+    typeof val === "boolean" ||
+    typeof val === "number" ||
+    Array.isArray(val) ||
+    isArrayBufferOrView(val) ||
+    !val.constructor ||
+    (val.constructor === Object &&
+      Object.prototype.toString.call(val) === "[object Object]")
+  );
 }
 __name(isPlain, "isPlain");
 function isSerializable(obj, transfers = []) {
@@ -846,8 +893,8 @@ var throwTransferHandler = {
         value: {
           message: value.message,
           name: value.name,
-          stack: value.stack
-        }
+          stack: value.stack,
+        },
       };
     } else {
       serialized = { isError: false, value };
@@ -858,29 +905,29 @@ var throwTransferHandler = {
     if (serialized.isError) {
       throw Object.assign(
         new Error(serialized.value.message),
-        serialized.value
+        serialized.value,
       );
     }
     throw serialized.value;
-  }
+  },
 };
 function toWireValue(ep, value) {
   if (value && value.$$ep === ep) {
     return [
       {
         type: "PROXY" /* PROXY */,
-        message: value._as_message()
+        message: value._as_message(),
       },
-      []
+      [],
     ];
   }
   if (value && value.constructor && value.constructor.name === "SynclinkTask") {
     return [
       {
         type: "PROXY" /* PROXY */,
-        message: value.msg
+        message: value.msg,
       },
-      []
+      [],
     ];
   }
   if (ep._bypass) {
@@ -894,9 +941,9 @@ function toWireValue(ep, value) {
           {
             type: "HANDLER" /* HANDLER */,
             name,
-            value: serializedValue
+            value: serializedValue,
           },
-          transferables
+          transferables,
         ];
       }
     }
@@ -907,9 +954,9 @@ function toWireValue(ep, value) {
     return [
       {
         type: "RAW" /* RAW */,
-        value
+        value,
       },
-      transferCache.get(value) || []
+      transferCache.get(value) || [],
     ];
   }
   let store_key = storeNewValue(ep, value);
@@ -918,9 +965,9 @@ function toWireValue(ep, value) {
       type: "ID" /* ID */,
       store_key,
       endpoint_uuid: ep[endpointUUID],
-      ownkeys: Object.getOwnPropertyNames(value)
+      ownkeys: Object.getOwnPropertyNames(value),
     },
-    []
+    [],
   ];
 }
 __name(toWireValue, "toWireValue");
@@ -946,7 +993,10 @@ function storeCreate(obj) {
   if (proxyStore in obj) {
     return;
   }
-  obj[proxyStore] = { objects: /* @__PURE__ */ new Map(), counter: new Uint32Array([1]) };
+  obj[proxyStore] = {
+    objects: /* @__PURE__ */ new Map(),
+    counter: new Uint32Array([1]),
+  };
   obj[endpointUUID] = generateUUID();
 }
 __name(storeCreate, "storeCreate");
@@ -982,14 +1032,16 @@ var proxyFakeMessagePort = false;
 var proxyTransferHandler = {
   canHandle: (val) => isObject(val) && val[proxyMarker],
   serialize(obj) {
-    const { port1, port2 } = proxyFakeMessagePort ? new FakeMessageChannel1() : new MessageChannel();
+    const { port1, port2 } = proxyFakeMessagePort
+      ? new FakeMessageChannel1()
+      : new MessageChannel();
     expose(obj, port1);
     return [port2, [port2]];
   },
   deserialize(port) {
     port.start();
     return wrap(port);
-  }
+  },
 };
 
 // src/synclink.ts
@@ -1004,7 +1056,7 @@ transferHandlers.set("headers", {
   },
   deserialize(value) {
     return new Headers(value);
-  }
+  },
 });
 export {
   FakeMessageChannel1 as FakeMessageChannel,
@@ -1019,6 +1071,6 @@ export {
   transfer,
   transferHandlers,
   windowEndpoint,
-  wrap
+  wrap,
 };
 //# sourceMappingURL=synclink.mjs.map
