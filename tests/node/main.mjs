@@ -20,7 +20,7 @@ describe("node", () => {
     });
 
     it("can work with objects + syncify in same thread", function () {
-      let fakePort1, fakePort2; 
+      let fakePort1, fakePort2;
       const { port1, port2 } = new MessageChannel();
       ({ port1: fakePort1, port2: fakePort2 } =
         new Synclink.FakeMessageChannel());
