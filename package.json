@@ -33,7 +33,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/hoodmane/synclink.git"
+    "url": "https://github.com/pyodide/synclink.git"
   },
   "license": "Apache-2.0",
   "devDependencies": {
