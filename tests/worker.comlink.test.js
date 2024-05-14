@@ -27,6 +27,13 @@ describe("Synclink across workers", function () {
     expect(await proxy(1, 3)).to.equal(4);
   });
 
+  it("returns type error with syncify in main thread", async function () {
+    const proxy = Synclink.wrap(this.worker);
+    expect(() => {
+      proxy(2, 4).syncify();
+    }).to.throw("Atomics.wait cannot be called in this context");
+  });
+
   it("can tunnels a new endpoint with createEndpoint", async function () {
     const proxy = Synclink.wrap(this.worker);
     const otherEp = await proxy[Synclink.createEndpoint]();

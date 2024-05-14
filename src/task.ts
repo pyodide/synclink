@@ -365,6 +365,9 @@ class _Syncifier {
 
   pollTasks(task?: SynclinkTask<any>): boolean {
     let result = false;
+    if (!task && this.tasks.size < 1) {
+      return true;
+    }
     for (let wokenTaskId of this.tasksIdsToWakeup()) {
       // console.log("poll task", wokenTaskId, "looking for",task);
       let wokenTask = this.tasks.get(wokenTaskId);
@@ -398,7 +401,9 @@ export let Syncifier = new _Syncifier();
 
 (async function syncifyPollLoop() {
   while (true) {
-    Syncifier.pollTasks();
+    if (Syncifier.pollTasks()) {
+      return;
+    }
     await sleep(20);
   }
 })();
