@@ -39,6 +39,7 @@
   "devDependencies": {
     "chai": "4.2.0",
     "conditional-type-checks": "1.0.5",
+    "error-stack-parser": "^2.1.4",
     "esbuild": "^0.17.15",
     "husky": "4.2.5",
     "karma": "^6.4.1",
