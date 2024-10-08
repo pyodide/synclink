@@ -57,9 +57,8 @@ export type ProxyOrClone<T> = T extends ProxyMarked ? Remote<T> : T;
 /**
  * Inverse of `ProxyOrClone<T>`.
  */
-export type UnproxyOrClone<T> = T extends RemoteObject<ProxyMarked>
-  ? Local<T>
-  : T;
+export type UnproxyOrClone<T> =
+  T extends RemoteObject<ProxyMarked> ? Local<T> : T;
 
 /**
  * Takes the raw type of a remote object in the other thread and returns the type as it is visible to the local thread
