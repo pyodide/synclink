@@ -7,6 +7,7 @@
   "types": "dist/types/synclink.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/types/synclink.d.ts",
       "require": "./dist/cjs/synclink.js",
       "import": "./dist/esm/synclink.mjs"
     }
