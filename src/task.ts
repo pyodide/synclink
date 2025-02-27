@@ -69,46 +69,51 @@ export class SynclinkTask<T> {
     });
   }
 
-  schedule_async(): this {
+  _schedule_async(): Promise<T> {
     if (this.mode === "async") {
       // already scheduled
-      return this;
+      return this._promise;
     }
     if (this.mode === "sync") {
       throw new Error("Already synchronously scheduled");
     }
     this.mode = "async";
-    this.do_async().then(
+    const p = this.do_async().then(
       (value) => {
         // console.log("resolving", this.taskId, "value", value);
         this._resolved = true;
         this._result = value;
         this._resolve(value);
+        return value;
       },
       (reason) => {
         this._exception = reason;
         this._reject(reason);
+        throw reason;
       },
     );
+    this._promise = p;
+    return p;
+  }
+
+  schedule_async(): this {
+    this._schedule_async();
     return this;
   }
 
-  async then<S>(
+  then<S>(
     onfulfilled: (value: T) => S,
     onrejected: (reason: any) => S,
   ): Promise<S> {
-    this.schedule_async();
-    return this._promise.then(onfulfilled, onrejected);
+    return this._schedule_async().then(onfulfilled, onrejected);
   }
 
-  catch<S>(onrejected: (reason: any) => S): Promise<S> {
-    this.schedule_async();
-    return this._promise.catch(onrejected);
+  catch<S>(onrejected: (reason: any) => S): Promise<S | T> {
+    return this._schedule_async().catch(onrejected);
   }
 
   finally(onfinally: () => void): Promise<T> {
-    this.schedule_async();
-    return this._promise.finally(onfinally);
+    return this._schedule_async().finally(onfinally);
   }
 
   schedule_sync(): this {
