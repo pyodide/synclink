@@ -100,8 +100,7 @@ interface ThrownValue {
   value: unknown;
 }
 type SerializedThrownValue =
-  | { isError: true; value: Error }
-  | { isError: false; value: unknown };
+  { isError: true; value: Error } | { isError: false; value: unknown };
 
 /**
  * Internal transfer handler to handle thrown exceptions.
