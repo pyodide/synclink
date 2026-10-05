@@ -92,10 +92,7 @@ export interface ProxyWireValue {
 }
 
 export type WireValue =
-  | RawWireValue
-  | HandlerWireValue
-  | IdWireValue
-  | ProxyWireValue;
+  RawWireValue | HandlerWireValue | IdWireValue | ProxyWireValue;
 
 export type MessageID = string;
 
